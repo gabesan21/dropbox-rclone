@@ -1,0 +1,6 @@
+# Worktrees do PoP
+pop/worktrees/
+
+# Arquivos de configuração locais
+.env
+backups.json

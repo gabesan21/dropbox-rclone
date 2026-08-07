@@ -1,0 +1,84 @@
+---
+id: <n>.<m>.<t>
+project: <categoria>/<projeto>
+origin: roadmap
+epoch: <n>
+phase: "<n>.<m>"
+modification:
+stage: 001_initial_task
+critical: false
+yolo: false
+size: S | M | L
+blocked: false
+blocked_reason:
+depends_on: []
+claimed_by:
+claimed_at:
+worktree:
+pr:
+awaiting_merge: false
+yolo_003_returns: 0
+yolo_005_returns: 0
+return_kind:
+circuit_breaker: false
+created: AAAA-MM-DD
+updated: AAAA-MM-DD
+---
+
+# <id>-<slug> — <título curto>
+
+> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/`; escopo com o harness na própria raiz, não.
+> **Origem:** task de roadmap (`origin: roadmap`) usa id `<n>.<m>.<t>` e preenche `epoch`/`phase` (apague `modification`); task de modification (`origin: modifications`) usa id `M-<n>.<t>` e preenche `modification: M-<n>` (apague `epoch`/`phase`).
+> **Campos de máquina:** `yolo_*_returns`, `return_kind` e `circuit_breaker` nascem vazios/zerados e são escritos **só** por `pop_move`/orquestrador — editar à mão infla contadores e faz o gate escolher o modo de revisão errado.
+
+- **Origem:** [[pop/roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]] — *ou* [[pop/MODIFICATIONS|M-<n>]] para task de modification.
+- **Plano:** [[<id>-<slug>.plan]] · **Aprovação:** [[<id>-<slug>.approval]] · **Verificação:** [[<id>-<slug>.verify]]
+
+## O quê
+
+Uma ou duas frases sobre a entrega observável, sem antecipar a implementação.
+
+## Por quê
+
+Uma frase: por que agora e o que destrava.
+
+## Liberação (user)
+
+> Só o humano marca, salvo comando explícito registrado no Log. Sem `[x]`, a task não sai de 001. Em `yolo: true`, a liberação antecipada do roadmap/modifications ou o pedido humano “iniciar o fluxo em yolo” permite ao agente marcar e registrar a origem; yolo nunca dispensa o card nem os demais estágios — ver [[WORKFLOW|WORKFLOW]].
+
+- [ ] Pronto para planejar
+
+## Skills por etapa
+
+> 002 é preenchida na criação; 004 e `005_closing`, pelo planejador. A linha de `005_closing` só vale em `yolo: true` — fora de yolo o gate é o PR humano. Liste apenas skills que mudem como o responsável deve trabalhar.
+
+| Etapa | Skills do projeto | Responsável |
+|-------|-------------------|-------------|
+| 002_planning | [[pop/skills/<skill>\|<skill>]] | agent |
+| 004_processing | [[pop/skills/<skill>\|<skill>]] | agent |
+| 005_closing | [[pop/skills/<skill>\|<skill>]] | agent |
+
+## Dependências
+
+> Espelha `depends_on:`. Dependência ausente bloqueia a execução; não autoriza o agente a implementá-la. Vazio = a task não tem pré-requisito no kanban.
+
+- [[<id-de-task-pré-requisito>]] — entrega necessária para iniciar esta task.
+
+## Links
+
+> Cada link leva um gatilho: quando vale segui-lo.
+
+- **Spec:** [[pop/specs/<spec>|<spec>]] — *siga para conhecer <contrato/invariante>*.
+- **Task relacionada:** [[<id-de-outra-task>]] — *siga se <condição>*.
+
+## Log
+
+- AAAA-MM-DD — criada em 001_initial_task — <motivo/origem>.
+
+## Telemetria mínima
+
+> Uma linha por estágio concluído/retornado. Registre custo observável, nunca reasoning, prompts ou tentativas.
+
+| Estágio | Contextos | Devoluções | Testes/estratégia | Duração | Resultado |
+|---------|-----------|------------|-------------------|---------|-----------|
+| 002 | planejador: 1 | 0 | n/a | <ex.: 20min> | plano criado |

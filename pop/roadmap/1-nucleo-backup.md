@@ -1,0 +1,53 @@
+# Epoch 1 — Núcleo: instalação, configuração e motor de backup
+
+- **Projeto:** [[pop/PROJECT|dropbox-rclone]] · **Roadmap:** [[pop/ROADMAP|Roadmap]]
+- **Status:** pendente
+- **Descrição:** Script de instalação, configuração rclone/Dropbox, arquivos .env/JSON e motor de agendamento em Go.
+- **Abandonar/pausar se:** rclone não suportar Dropbox de forma estável nas distros alvo.
+
+> Uma phase por seção; sob cada phase, somente suas tasks ainda abertas — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[<id>]]`; ao concluir o `005_closing`, sai da tabela depois de sua memory válida (ver [[WORKFLOW|WORKFLOW]]).
+> **Yolo herda:** epoch yolo → phases e tasks herdam; phase yolo → tasks herdam. Opt-out/opt-in por task: anexe ` · yolo: não` (ou ` · yolo: sim`) ao fim da célula Descrição — sem coluna nova. O `new-task` resolve a herança e estampa o card (seção Yolo do [[WORKFLOW|WORKFLOW]]).
+> **Size:** o agente sugere `S|M|L` na Descrição; `new-task` estampa no card e o humano corrige em 001. Size orienta tier/esforço; risco, skills, dependências e write sets determinam a topologia no [[WORKFLOW|WORKFLOW]].
+
+## Recon e forks
+
+> Pesquisas em `pop/researches/` (escopo com o harness na própria raiz: sem o prefixo `pop/`) que embasaram o detalhamento; o que ficou sem resposta é RECON NEEDED, com o check que resolve. Forks: mudanças de rota pré-identificadas.
+
+- [ ] RECON NEEDED: formato exato do token de configuração rclone para Dropbox em modo headless — check: pesquisa na documentação oficial rclone sobre `rclone config` e backend Dropbox.
+- Fork: se rclone exigir interação web para OAuth → README ganha instrução de configuração manual assistida via SSH port-forward.
+
+## Phase 1.1 — Script de instalação e detecção de distro
+
+- **Status:** pendente
+- **Descrição:** Shell script que detecta a distro e instala rclone e Go via package manager correto, pulando o que já existe.
+
+| Task | Descrição (≤1 linha) | Status |
+|------|----------------------|--------|
+| `1.1.1-script-instalacao-base` | Cria `install.sh` que detecta Debian/Ubuntu/Mint, Arch ou Fedora e instala rclone e Go. · size: M | não iniciada |
+| `1.1.2-verificacao-pre-requisitos` | Faz o script pular instalação quando rclone e Go já estão presentes. · size: S | não iniciada |
+| `1.1.3-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
+
+> **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
+
+## Phase 1.2 — Configuração rclone/Dropbox e arquivos .env/JSON
+
+- **Status:** pendente
+- **Descrição:** Configuração do backend Dropbox no rclone e criação dos arquivos de configuração `.env` e `backups.json`.
+
+| Task | Descrição (≤1 linha) | Status |
+|------|----------------------|--------|
+| `1.2.1-config-rclone-dropbox` | Implementa configuração do rclone para Dropbox e validação de conexão. · size: M | não iniciada |
+| `1.2.2-arquivo-env` | Cria `.env` com intervalo padrão de 30 min e registra `.env` no `.gitignore`. · size: S | não iniciada |
+| `1.2.3-arquivo-json-backups` | Cria `backups.json` de exemplo com array de objetos `{path, rclone_account, remote_path, backup_time, max_backups}` e registra no `.gitignore`. · size: S | não iniciada |
+| `1.2.4-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
+
+## Phase 1.3 — Motor de agendamento e execução de backup
+
+- **Status:** pendente
+- **Descrição:** Programa em Go que lê o JSON, filtra backups no intervalo atual e executa rclone com política de retenção.
+
+| Task | Descrição (≤1 linha) | Status |
+|------|----------------------|--------|
+| `1.3.1-leitura-agendamentos` | Implementa em Go a leitura de `backups.json` e filtro de entradas cujo `backup_time` cai no intervalo atual definido pelo `.env`. · size: M | não iniciada |
+| `1.3.2-execucao-backup-rclone` | Implementa em Go a execução do `rclone sync/copy` com `remote_path` e aplicação de `max_backups`. · size: L | não iniciada |
+| `1.3.3-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
