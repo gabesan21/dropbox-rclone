@@ -22,7 +22,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| [[4.1.1-compacted-memoria-e-pre-check]] | Compacted deixa de esgotar memória (stream ou tmp em disco) e aborta antes de compactar se o espaço livre não couber a origem; limpa parcial em qualquer falha. · size: M | 001_initial_task |
 | `4.1.2-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
