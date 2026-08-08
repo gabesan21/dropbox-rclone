@@ -38,16 +38,18 @@
 |------|----------------------|--------|
 | `1.2.1-config-rclone-dropbox` | Implementa configuração do rclone para Dropbox e validação de conexão. · size: M | não iniciada |
 | `1.2.2-arquivo-env` | Cria `.env` com intervalo padrão de 30 min e registra `.env` no `.gitignore`. · size: S | não iniciada |
-| `1.2.3-arquivo-json-backups` | Cria `backups.json` de exemplo com array de objetos `{path, rclone_account, remote_path, backup_time, max_backups}` e registra no `.gitignore`. · size: S | não iniciada |
+| `1.2.3-arquivo-json-backups` | Cria `backups.json` de exemplo com array de objetos `{path, rclone_account, remote_path, backup_time, max_backups, type}` (`type`: `compacted` \| `folder-backup` \| `folder-sync`) e registra no `.gitignore`. · size: S | não iniciada |
 | `1.2.4-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
 
 ## Phase 1.3 — Motor de agendamento e execução de backup
 
 - **Status:** pendente
-- **Descrição:** Programa em Go que lê o JSON, filtra backups no intervalo atual e executa rclone com política de retenção.
+- **Descrição:** Programa em Go que lê o JSON, filtra backups no intervalo atual e executa o tipo de backup correto (`compacted`, `folder-backup` ou `folder-sync`) com política de retenção.
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
 | `1.3.1-leitura-agendamentos` | Implementa em Go a leitura de `backups.json` e filtro de entradas cujo `backup_time` cai no intervalo atual definido pelo `.env`. · size: M | não iniciada |
-| `1.3.2-execucao-backup-rclone` | Implementa em Go a execução do `rclone sync/copy` com `remote_path` e aplicação de `max_backups`. · size: L | não iniciada |
-| `1.3.3-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
+| `1.3.2-execucao-backup-compacted` | Implementa backup `compacted`: gera arquivo compactado com data no remoto e aplica rotação por `max_backups`. · size: L | não iniciada |
+| `1.3.3-execucao-backup-folder` | Implementa backup `folder-backup`: espelha o conteúdo local no remoto via rclone, com o local como referência. · size: M | não iniciada |
+| `1.3.4-execucao-sync-folder` | Implementa backup `folder-sync`: sincroniza o conteúdo entre local e remoto respeitando ambas as fontes. · size: M | não iniciada |
+| `1.3.5-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |

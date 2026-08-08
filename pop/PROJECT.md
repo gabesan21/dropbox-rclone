@@ -8,7 +8,7 @@
 
 ## Objetivo
 
-Ferramenta de backup automatizado para servidores remotos: instala rclone e Go, configura Dropbox, agenda backups via JSON e executa como serviço periódico, com TUI de gestão em Go.
+Ferramenta de backup automatizado para servidores remotos: instala rclone e Go, configura Dropbox, agenda backups via JSON com três tipos (`compacted`, `folder-backup`, `folder-sync`) e executa como serviço periódico, com TUI de gestão em Go.
 
 ## Contexto
 
