@@ -23,7 +23,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `3.1.1-readme-completo` | Escreve o README pt-BR: pré-requisitos, install.sh, rclone Dropbox headless (fork SSH port-forward), .env/backups.json, manage, service.sh. · size: M | não iniciada |
 | `3.1.2-verificacao-da-phase` | Confere o README contra os artefatos reais (comandos, flags, caminhos) e conserta divergências. · size: S | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
