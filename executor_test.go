@@ -34,18 +34,39 @@ rcat)
 	mkdir -p "$(dirname "$dest")"
 	cat > "$dest"
 	;;
+copy)
+	if [ -n "$FAKE_RCLONE_FAIL_COPY" ]; then
+		exit 1
+	fi
+	src="$1"
+	dest="$FAKE_REMOTE_ROOT/${2#*:}"
+	mkdir -p "$dest"
+	cp -r "$src"/. "$dest/"
+	;;
 deletefile)
 	if [ -n "$FAKE_RCLONE_FAIL_DELETEFILE" ]; then
 		exit 1
 	fi
 	rm -f "$FAKE_REMOTE_ROOT/$alvo"
 	;;
+purge)
+	rm -rf "$FAKE_REMOTE_ROOT/$alvo"
+	;;
 lsf)
 	dir="$FAKE_REMOTE_ROOT/$alvo"
 	[ -d "$dir" ] || exit 0
-	for f in "$dir"/*; do
-		[ -f "$f" ] && echo "$(basename "$f");$(stat -c %Y "$f")"
-	done
+	case " $* " in
+	*" --dirs-only "*)
+		for f in "$dir"/*; do
+			[ -d "$f" ] && echo "$(basename "$f")/"
+		done
+		;;
+	*)
+		for f in "$dir"/*; do
+			[ -f "$f" ] && echo "$(basename "$f");$(stat -c %Y "$f")"
+		done
+		;;
+	esac
 	;;
 *)
 	echo "rclone fake: subcomando não suportado: $cmd" >&2
@@ -366,5 +387,183 @@ func TestRunCompactedRotacao(t *testing.T) {
 	}
 	if log := leLog(t, env.rcloneLog); !strings.Contains(log, "deletefile fake:backups/x/"+antigos[0]) {
 		t.Errorf("esperava deletefile do mais antigo no log: %s", log)
+	}
+}
+
+// Suíte da task 4.2.1: prova o RunFullFolder (rclone copy para pasta datada
+// + rotação por purge) sobre o mesmo ambiente fake — pasta remota fake =
+// diretório local. Sem t.Parallel pelos mesmos motivos da suíte compacted.
+
+// dirsEm lista os diretórios diretamente sob um diretório (vazio se não existir).
+func dirsEm(t *testing.T, dir string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		t.Fatalf("listando %s: %v", dir, err)
+	}
+	var nomes []string
+	for _, e := range entries {
+		if e.IsDir() {
+			nomes = append(nomes, e.Name())
+		}
+	}
+	return nomes
+}
+
+func (e *ambienteFake) backupFullFolder(origem string, maxBackups int) Backup {
+	b := e.backup(origem, maxBackups)
+	b.Type = "full-folder"
+	return b
+}
+
+func TestRunFullFolderSucesso(t *testing.T) {
+	// Caminho feliz: a origem é copiada para <base>-<AAAAMMDD-HHMMSS>/ no
+	// remoto, com o conteúdo intacto — nenhuma compactação envolvida.
+	env := novoAmbienteFake(t)
+	env.instalaFake(t, "rclone", rcloneFake)
+	origem := env.criaOrigem(t)
+
+	if err := RunFullFolder(env.backupFullFolder(origem, 5)); err != nil {
+		t.Fatalf("RunFullFolder falhou no caminho feliz: %v", err)
+	}
+
+	remoto := filepath.Join(env.remoteRoot, "backups/x")
+	pastas := dirsEm(t, remoto)
+	if len(pastas) != 1 {
+		t.Fatalf("esperava exatamente 1 pasta no remoto, obteve %v", pastas)
+	}
+	if !regexp.MustCompile(`^origem-\d{8}-\d{6}$`).MatchString(pastas[0]) {
+		t.Errorf("nome fora do padrão <pasta>-<AAAAMMDD-HHMMSS>: %s", pastas[0])
+	}
+
+	conteudo, err := os.ReadFile(filepath.Join(remoto, pastas[0], "ola.txt"))
+	if err != nil {
+		t.Fatalf("arquivo da origem ausente na pasta remota: %v", err)
+	}
+	if string(conteudo) != "conteúdo de teste" {
+		t.Errorf("conteúdo divergente na pasta remota: %q", conteudo)
+	}
+	if log := leLog(t, env.tarLog); log != "" {
+		t.Errorf("tar não deveria ter sido invocado, log: %s", log)
+	}
+}
+
+func TestRunFullFolderOrigemInexistente(t *testing.T) {
+	// Origem inexistente aborta antes de qualquer cópia, com erro que a identifica.
+	env := novoAmbienteFake(t)
+	env.instalaFake(t, "rclone", rcloneFake)
+	origem := filepath.Join(env.tmp, "nao-existe")
+
+	err := RunFullFolder(env.backupFullFolder(origem, 5))
+	if err == nil {
+		t.Fatal("esperava erro de aborto, obteve sucesso")
+	}
+	if !strings.Contains(err.Error(), origem) {
+		t.Errorf("erro deveria identificar a origem %s: %v", origem, err)
+	}
+	if log := leLog(t, env.rcloneLog); log != "" {
+		t.Errorf("rclone não deveria ter sido invocado, log: %s", log)
+	}
+}
+
+func TestRunFullFolderFalhaNoCopy(t *testing.T) {
+	// rclone copy falhando derruba o backup e a rotação não roda.
+	env := novoAmbienteFake(t)
+	env.instalaFake(t, "rclone", rcloneFake)
+	t.Setenv("FAKE_RCLONE_FAIL_COPY", "1")
+	origem := env.criaOrigem(t)
+
+	if err := RunFullFolder(env.backupFullFolder(origem, 5)); err == nil {
+		t.Fatal("esperava erro com copy falhando, obteve sucesso")
+	}
+	if log := leLog(t, env.rcloneLog); strings.Contains(log, "purge") {
+		t.Errorf("rotação não deveria rodar após falha no copy, log: %s", log)
+	}
+}
+
+func TestRunFullFolderRotacao(t *testing.T) {
+	// Com max_backups=2 e 2 pastas antigas já no remoto, o sucesso deixa
+	// exatamente as 2 mais recentes e faz purge da mais antiga.
+	env := novoAmbienteFake(t)
+	env.instalaFake(t, "rclone", rcloneFake)
+	origem := env.criaOrigem(t)
+
+	remoto := filepath.Join(env.remoteRoot, "backups/x")
+	antigas := []string{"origem-20200101-000000", "origem-20210101-000000"}
+	for _, nome := range antigas {
+		if err := os.MkdirAll(filepath.Join(remoto, nome), 0755); err != nil {
+			t.Fatalf("semeando remoto: %v", err)
+		}
+	}
+
+	if err := RunFullFolder(env.backupFullFolder(origem, 2)); err != nil {
+		t.Fatalf("RunFullFolder falhou: %v", err)
+	}
+
+	restantes := dirsEm(t, remoto)
+	if len(restantes) != 2 {
+		t.Fatalf("esperava 2 pastas após rotação, obteve %v", restantes)
+	}
+	for _, nome := range restantes {
+		if nome == antigas[0] {
+			t.Errorf("a mais antiga deveria ter sido removida: %v", restantes)
+		}
+	}
+	if log := leLog(t, env.rcloneLog); !strings.Contains(log, "purge fake:backups/x/"+antigas[0]) {
+		t.Errorf("esperava purge da mais antiga no log: %s", log)
+	}
+}
+
+func TestPastasExcedentes(t *testing.T) {
+	// Seleção pura da rotação de pastas: filtra pelo prefixo, aceita nomes
+	// com e sem "/" final (lsf --dirs-only devolve com "/"), ignora o que
+	// não é pasta datada do backup e devolve as mais antigas a remover.
+	cases := []struct {
+		name       string
+		names      []string
+		maxBackups int
+		want       []string
+	}{
+		{
+			name:       "com e sem barra final",
+			names:      []string{"origem-20200101-000000/", "origem-20210101-000000", "origem-20220101-000000/"},
+			maxBackups: 2,
+			want:       []string{"origem-20200101-000000"},
+		},
+		{
+			name:       "sem excedente",
+			names:      []string{"origem-20200101-000000/"},
+			maxBackups: 2,
+			want:       nil,
+		},
+		{
+			name:       "ignora outros prefixos e arquivos",
+			names:      []string{"origem-20200101-000000/", "origem-20210101-000000/", "outra-20190101-000000/", "origem-20200101-000000.tar.gz"},
+			maxBackups: 1,
+			want:       []string{"origem-20200101-000000"},
+		},
+		{
+			name:       "ordena cronologicamente pelo nome",
+			names:      []string{"origem-20220101-000000/", "origem-20200101-000000/", "origem-20210101-000000/"},
+			maxBackups: 1,
+			want:       []string{"origem-20200101-000000", "origem-20210101-000000"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := pastasExcedentes(tc.names, "origem", tc.maxBackups)
+			if len(got) != len(tc.want) {
+				t.Fatalf("got %v, want %v", got, tc.want)
+			}
+			for i := range tc.want {
+				if got[i] != tc.want[i] {
+					t.Errorf("posição %d: got %s, want %s", i, got[i], tc.want[i])
+				}
+			}
+		})
 	}
 }
