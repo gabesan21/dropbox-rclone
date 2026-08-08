@@ -17,6 +17,7 @@ authorization: triagem de fix direto (regra 13) — pedido humano "semelhante ao
 ## Entradas
 
 - [[F-20260808-readme-renovado.01-readme-renovado]] — reescrita do README no novo formato.
+- [[F-20260808-readme-renovado.02-ascii-art-titulo]] — título vira ASCII art (pedido humano).
 
 ## Links
 

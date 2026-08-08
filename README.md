@@ -1,6 +1,11 @@
-<p align="center">
-  <h1 align="center">dropbox-rclone</h1>
-</p>
+```
+      #                          #                                               ##
+      #                          #                                                #                       ###
+  #####  # ####   ###    ####    ####     ###    #   #           # ####   ####    #       ###    ####    #   #
+ #    #  ##      #   #   #   #   #   #   #   #     #      ###    ##      #        #      #   #   #   #   #####
+ #    #  #       #   #   ####    #   #   #   #     #             #       #        #      #   #   #   #   #
+  #####  #        ###    #       ####     ###    #   #           #        ####   ###      ###    #   #    ###
+```
 
 <p align="center">
   <b>Backup automatizado de pastas para o Dropbox, feito para servidores remotos sem browser.</b>
