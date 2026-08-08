@@ -4,3 +4,6 @@ pop/worktrees/
 # Arquivos de configuração locais
 .env
 backups.json
+
+# Binário compilado
+/dropbox-rclone
