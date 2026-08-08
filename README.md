@@ -1,12 +1,57 @@
-# dropbox-rclone
+<p align="center">
+  <h1 align="center">dropbox-rclone</h1>
+</p>
+
+<p align="center">
+  <b>Backup automatizado de pastas para o Dropbox, feito para servidores remotos sem browser.</b>
+</p>
+
+<p align="center">
+  <a href="#como-funciona">Como funciona</a> ·
+  <a href="#instalação">Instalação</a> ·
+  <a href="#configurando-o-dropbox-servidor-sem-browser">Dropbox headless</a> ·
+  <a href="#configuração-dos-backups">Backups</a> ·
+  <a href="#serviço-timer-systemd">Serviço</a>
+</p>
+
+<p align="center">
+  <img alt="Go 1.25" src="https://img.shields.io/badge/Go-1.25-00ADD8">
+  <img alt="rclone" src="https://img.shields.io/badge/rclone-Dropbox-f97316">
+  <img alt="systemd user timer" src="https://img.shields.io/badge/systemd-user__timer-f97316">
+  <img alt="TUI Charm" src="https://img.shields.io/badge/TUI-Charm-f97316">
+</p>
+
+---
 
 Backup automatizado de pastas para o **Dropbox** usando [rclone](https://rclone.org), com motor de agendamento escrito em **Go**. Pensado para **servidores remotos acessados via SSH** (sem browser): um timer systemd roda o binário em intervalos fixos e ele executa os backups agendados para aquela janela.
+
+## Por quê
+
+- 🖥️ **Headless de verdade** — toda a configuração do Dropbox acontece via SSH, por port-forward ou por token gerado noutra máquina. Nenhuma etapa exige browser no servidor.
+- 🪟 **Agendamento por janela** — o binário roda a cada *N* minutos e executa só o que está agendado para aquela janela: um timer simples cobre o dia inteiro.
+- 🗜️ **Três tipos de backup** — arquivo compactado datado com rotação, espelho unidirecional ou sincronização bidirecional, por entrada.
+- 🧾 **JSON declarativo** — cada backup é um objeto num `backups.json` gitignorado: origem, remote, horário, retenção e tipo.
+- ⌨️ **TUI para gerenciar** — listar, adicionar, editar e remover entradas sem editar JSON na mão, com formulários validados (Charm).
+- 🔁 **Roda sem você** — timer systemd de usuário + linger: os backups continuam mesmo sem sessão SSH aberta.
 
 ## Como funciona
 
 1. Um **timer systemd de usuário** dispara o binário a cada `BACKUP_INTERVAL_MINUTES` minutos (padrão: 30).
 2. O binário lê o `backups.json` e seleciona as entradas cujo `backup_time` cai dentro da janela atual — exemplo: rodando às 1h15 com intervalo de 30 min, executa os agendamentos entre 1h00 e 1h30.
-3. Cada entrada é executada conforme seu **tipo** (compactado, espelho ou sincronização bidirecional — ver abaixo).
+3. Cada entrada é executada conforme seu **tipo** (compactado, espelho ou sincronização bidirecional — ver [Tipos de backup](#tipos-de-backup)).
+
+```mermaid
+flowchart LR
+    A["timer systemd<br/>a cada N min"] --> B["binário Go"]
+    B --> C{"backup_time<br/>na janela?"}
+    C -->|sim| D["executa a entrada<br/>conforme o tipo"]
+    C -->|não| E["ignora nesta rodada"]
+    D --> F["Dropbox<br/>via rclone"]
+    classDef agent fill:#1f2937,stroke:#4b5563,color:#e5e7eb
+    classDef human fill:#f97316,stroke:#c2570c,color:#1c1917,font-weight:bold
+    class A,B,C,E agent
+    class D,F human
+```
 
 ## Pré-requisitos
 
@@ -160,3 +205,25 @@ Para rodar uma verificação imediatamente (sem esperar o timer):
 ```
 
 Ele imprime os backups da janela atual e executa cada um, reportando `OK` ou o erro de cada entrada.
+
+## Estrutura do repositório
+
+```
+dropbox-rclone/
+├── install.sh           ← instala rclone e Go (apt, pacman ou dnf, conforme a distro)
+├── setup-rclone.sh      ← valida a conexão com o remote Dropbox
+├── service.sh           ← instala/gerencia a unit + timer systemd de usuário
+├── main.go              ← entry point: seleção por janela e subcomando `manage`
+├── backup.go            ← os três tipos de backup (compacted, folder-backup, folder-sync)
+├── executor.go          ← execução das entradas selecionadas, com relatório por entrada
+├── store.go             ← leitura/escrita do backups.json
+├── tui.go / tui_form.go ← TUI de gerenciamento das entradas (Charm)
+├── tests/               ← testes shell dos scripts de instalação, setup e serviço
+└── pop/                 ← harness do ProjectOfProjects (planejamento, não faz parte do produto)
+```
+
+## Créditos
+
+- **Desenvolvedor:** [G. S. Nunes (CariocaWeb3)](https://github.com/gabesan21).
+- Transferências e remotes por **[rclone](https://rclone.org)**.
+- TUI construída com o ecossistema **[Charm](https://charm.land)** (bubbletea, huh, bubbles, lipgloss).
