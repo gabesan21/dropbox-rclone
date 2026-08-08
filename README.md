@@ -33,7 +33,7 @@ Backup automatizado de pastas para o **Dropbox** usando [rclone](https://rclone.
 
 - 🖥️ **Headless de verdade** — toda a configuração do Dropbox acontece via SSH, por port-forward ou por token gerado noutra máquina. Nenhuma etapa exige browser no servidor.
 - 🪟 **Agendamento por janela** — o binário roda a cada *N* minutos e executa só o que está agendado para aquela janela: um timer simples cobre o dia inteiro.
-- 🗜️ **Três tipos de backup** — arquivo compactado datado com rotação, espelho unidirecional ou sincronização bidirecional, por entrada.
+- 🗜️ **Quatro tipos de backup** — arquivo compactado datado com rotação, cópia datada da pasta inteira com rotação, espelho unidirecional ou sincronização bidirecional, por entrada.
 - 🧾 **JSON declarativo** — cada backup é um objeto num `backups.json` gitignorado: origem, remote, horário, retenção e tipo.
 - ⌨️ **TUI para gerenciar** — listar, adicionar, editar e remover entradas sem editar JSON na mão, com formulários validados (Charm).
 - 🔁 **Roda sem você** — timer systemd de usuário + linger: os backups continuam mesmo sem sessão SSH aberta.
@@ -42,7 +42,7 @@ Backup automatizado de pastas para o **Dropbox** usando [rclone](https://rclone.
 
 1. Um **timer systemd de usuário** dispara o binário a cada `BACKUP_INTERVAL_MINUTES` minutos (padrão: 30).
 2. O binário lê o `backups.json` e seleciona as entradas com algum **slot** na janela atual — os slots do dia de cada entrada são `backup_time` + k·`repeat_cicle` (com `repeat_cicle` vazio ou `24h`, um único slot diário). Exemplo: rodando às 1h15 com intervalo de 30 min, executa os slots entre 1h00 e 1h30.
-3. Cada entrada é executada conforme seu **tipo** (compactado, espelho ou sincronização bidirecional — ver [Tipos de backup](#tipos-de-backup)).
+3. Cada entrada é executada conforme seu **tipo** (compactado, cópia datada da pasta, espelho ou sincronização bidirecional — ver [Tipos de backup](#tipos-de-backup)).
 
 ```mermaid
 flowchart LR
@@ -132,12 +132,13 @@ Também gitignorado. Array de objetos, um por backup:
 | `backup_time` | string | Horário do primeiro slot do dia, formato `HH:MM`. |
 | `name` | string | Identificador único da entrada — obrigatório em entradas novas; é o endereço usado pelos comandos `force`/`restore`. |
 | `repeat_cicle` | string | Ciclo de repetição dentro do dia: `15m`, `30m`, `1h`, `3h`, `6h`, `12h` ou `24h`. Os slots do dia são `backup_time` + k·ciclo. Vazio ou ausente equivale a `24h` (1x/dia, comportamento histórico). |
-| `max_backups` | int | Máximo de arquivos mantidos no remoto (rotação). **Só tem efeito no tipo `compacted`**; nos demais tipos é ignorado (vale 1). |
-| `type` | string | `compacted`, `folder-backup` ou `folder-sync`. |
+| `max_backups` | int | Máximo de backups mantidos no remoto (rotação). **Só tem efeito nos tipos `compacted` e `full-folder`**; nos demais tipos é ignorado (vale 1). |
+| `type` | string | `compacted`, `full-folder`, `folder-backup` ou `folder-sync`. |
 
 ### Tipos de backup
 
 - **`compacted`** — compacta a pasta local num `.tar.gz` datado (`<pasta>-AAAAMMDD-HHMMSS.tar.gz`) e sobe para o `remote_path`. Ao ultrapassar `max_backups` no remoto, remove os arquivos mais antigos.
+- **`full-folder`** — copia a pasta local para uma pasta datada `<base>-AAAAMMDD-HHMMSS/` dentro do `remote_path` (`rclone copy`), sem compactação: cada execução preserva as versões anteriores. Ao ultrapassar `max_backups` no remoto, remove as pastas datadas mais antigas.
 - **`folder-backup`** — espelha o conteúdo local no remoto com `rclone sync`: a pasta remota fica uma **cópia idêntica** da local, que é a referência (o que não existe mais localmente é removido do remoto).
 - **`folder-sync`** — sincronização **bidirecional** com `rclone bisync`, respeitando as duas fontes. **Na primeira execução**, inicialize manualmente:
 
@@ -160,6 +161,16 @@ Exemplo de `backups.json`:
     "type": "compacted"
   },
   {
+    "path": "/var/www/app",
+    "rclone_account": "dropbox",
+    "remote_path": "backups/servidor/app",
+    "backup_time": "04:00",
+    "name": "app-full-folder",
+    "repeat_cicle": "24h",
+    "max_backups": 3,
+    "type": "full-folder"
+  },
+  {
     "path": "/etc/nginx",
     "rclone_account": "dropbox",
     "remote_path": "backups/servidor/nginx",
@@ -179,7 +190,7 @@ Em vez de editar o JSON na mão, use a interface de terminal:
 ./dropbox-rclone manage
 ```
 
-Permite **listar, adicionar, editar e remover** entradas do `backups.json`, com formulários validados (nome, horário `HH:MM`, ciclo de repetição, tipo entre os três suportados etc.).
+Permite **listar, adicionar, editar e remover** entradas do `backups.json`, com formulários validados (nome, horário `HH:MM`, ciclo de repetição, tipo entre os quatro suportados etc.).
 
 ## Operação manual: force, restore e validate
 
@@ -192,7 +203,7 @@ Além do agendamento, o `service.sh` repassa três comandos ao binário:
 ```
 
 - **`force`** é útil para testar uma entrada sem esperar o slot. Se o nome não existir, o erro lista os nomes disponíveis.
-- **`restore` é destrutivo:** o conteúdo da pasta local é **apagado e repovoado** a partir do remoto — no tipo `compacted`, extrai o `.tar.gz` mais recente; nos demais, faz `rclone sync` remoto→local. Por isso exige a flag `--yes`; sem ela, aborta sem tocar em nada.
+- **`restore` é destrutivo:** o conteúdo da pasta local é **apagado e repovoado** a partir do remoto — no tipo `compacted`, extrai o `.tar.gz` mais recente; no `full-folder`, copia de volta a pasta datada mais recente; nos demais, faz `rclone sync` remoto→local. Por isso exige a flag `--yes`; sem ela, aborta sem tocar em nada.
 - **`validate`** agrega todos os problemas de configuração (campos obrigatórios, `name` duplicado, `repeat_cicle` inválido ou menor que o intervalo do timer), um por linha.
 
 ## Serviço (timer systemd)
@@ -237,9 +248,9 @@ dropbox-rclone/
 ├── setup-rclone.sh      ← valida a conexão com o remote Dropbox
 ├── service.sh           ← instala/gerencia a unit + timer systemd de usuário
 ├── main.go              ← entry point: agendamento por janela/ciclos e subcomandos (manage, validate, force, restore)
-├── backup.go            ← os três tipos de backup (compacted, folder-backup, folder-sync)
+├── backup.go            ← os quatro tipos de backup (compacted, full-folder, folder-backup, folder-sync)
 ├── executor.go          ← execução das entradas selecionadas, com relatório por entrada
-├── restore.go           ← restore manual: rclone sync remoto→local ou extração do .tar.gz mais recente
+├── restore.go           ← restore manual: rclone sync remoto→local, extração do .tar.gz ou cópia da pasta datada mais recente
 ├── store.go             ← leitura/escrita e validação do backups.json
 ├── tui.go / tui_form.go ← TUI de gerenciamento das entradas (Charm)
 ├── tests/               ← testes shell dos scripts de instalação, setup e serviço
