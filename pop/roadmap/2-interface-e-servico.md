@@ -1,7 +1,7 @@
 # Epoch 2 — Interface e serviço
 
 - **Projeto:** [[pop/PROJECT|dropbox-rclone]] · **Roadmap:** [[pop/ROADMAP|Roadmap]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Descrição:** TUI de gestão do `backups.json` com as libs CHARM e serviço systemd de execução periódica.
 - **Yolo:** sim
 
@@ -28,11 +28,10 @@
 
 ## Phase 2.2 — Serviço systemd
 
-- **Status:** pendente
+- **Status:** concluída
 - **Descrição:** Script que gera unit + timer systemd a partir do `BACKUP_INTERVAL_MINUTES` e oferece instalar/habilitar/status/remover.
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `2.2.2-verificacao-da-phase` | Testes shell do `service.sh` (geração dos units, parsing do `.env`) sem tocar systemd real. · size: S | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
