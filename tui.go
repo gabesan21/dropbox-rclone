@@ -11,15 +11,32 @@ import (
 // backupItem adapta Backup para o componente list do bubbles.
 type backupItem struct{ backup Backup }
 
-func (i backupItem) Title() string { return i.backup.Path }
+// displayName identifica a entrada pelo name, com fallback para o path
+// em entradas legadas ainda sem nome.
+func displayName(b Backup) string {
+	if b.Name != "" {
+		return b.Name
+	}
+	return b.Path
+}
+
+// displayCicle resolve o ciclo para exibição; vazio equivale a 24h (1x/dia).
+func displayCicle(b Backup) string {
+	if b.RepeatCicle != "" {
+		return b.RepeatCicle
+	}
+	return "24h"
+}
+
+func (i backupItem) Title() string { return displayName(i.backup) }
 
 func (i backupItem) Description() string {
 	b := i.backup
-	return fmt.Sprintf("%s:%s · %s · %s · max=%d",
-		b.RcloneAccount, b.RemotePath, b.Type, b.BackupTime, b.MaxBackups)
+	return fmt.Sprintf("%s:%s · %s · %s · ciclo=%s · max=%d",
+		b.RcloneAccount, b.RemotePath, b.Type, b.BackupTime, displayCicle(b), b.MaxBackups)
 }
 
-func (i backupItem) FilterValue() string { return i.backup.Path }
+func (i backupItem) FilterValue() string { return displayName(i.backup) }
 
 // action é a escolha feita na lista, executada fora do programa bubbletea.
 type action int

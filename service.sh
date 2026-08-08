@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # service.sh — gerencia o serviço de backup como unit + timer de systemd de usuário.
 #
-# Uso: ./service.sh <install|enable|disable|status|remove>
+# Uso: ./service.sh <install|enable|disable|status|remove|force|restore|validate>
 #
 # install  — gera os units em ~/.config/systemd/user/ e recarrega o systemd
 # enable   — install + habilita e inicia o timer
 # disable  — para e desabilita o timer
 # status   — mostra o estado do timer e a próxima execução
 # remove   — disable + apaga os units
+# force    — executa o backup da entrada <nome> imediatamente (repassa ao binário)
+# restore  — restaura a entrada <nome> a partir do remoto (exige --yes)
+# validate — valida o backups.json
 #
 # Variáveis de ambiente:
 #   SYSTEMD_USER_DIR — sobrescreve o diretório de units (padrão ~/.config/systemd/user)
@@ -121,6 +124,11 @@ cmd_remove() {
     echo "Units removidas de $UNIT_DIR."
 }
 
+# run_binary repassa um comando de operação (force/restore/validate) ao binário.
+run_binary() {
+    "$BINARY" "$@"
+}
+
 main() {
     local cmd="${1:-}"
     case "$cmd" in
@@ -129,8 +137,9 @@ main() {
         disable) cmd_disable ;;
         status) cmd_status ;;
         remove) cmd_remove ;;
+        force|restore|validate) run_binary "$cmd" "${@:2}" ;;
         *)
-            echo "uso: $0 <install|enable|disable|status|remove>" >&2
+            echo "uso: $0 <install|enable|disable|status|remove|force <nome>|restore <nome> --yes|validate>" >&2
             exit 2
             ;;
     esac

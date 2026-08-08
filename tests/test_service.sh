@@ -131,6 +131,62 @@ test_uso_sem_argumento() {
     fi
 }
 
+# --- Teste 9: texto de uso lista os comandos novos ----------------------------
+
+test_uso_lista_comandos_novos() {
+    local out
+    out=$("$SERVICE_SCRIPT" 2>&1 || true)
+    if grep -q 'force <nome>' <<< "$out" \
+        && grep -q 'restore <nome> --yes' <<< "$out" \
+        && grep -q 'validate' <<< "$out"; then
+        pass "texto de uso lista force, restore e validate"
+    else
+        fail "texto de uso não lista os comandos novos: $out"
+    fi
+}
+
+# --- Testes 10-12: repasse de force/restore/validate ao binário ---------------
+
+# make_stub_binary cria um binário falso que grava os argumentos em $STUB_OUT.
+make_stub_binary() {
+    local dir="$1"
+    cat > "$dir/dropbox-rclone" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$STUB_OUT"
+EOF
+    chmod +x "$dir/dropbox-rclone"
+}
+
+# check_repasse roda o service.sh com binário stub e confere os argumentos.
+check_repasse() {
+    local desc="$1" esperado="$2"
+    shift 2
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    make_stub_binary "$tmpdir"
+    STUB_OUT="$tmpdir/out" BINARY="$tmpdir/dropbox-rclone" "$SERVICE_SCRIPT" "$@"
+    local got
+    got=$(cat "$tmpdir/out")
+    rm -rf "$tmpdir"
+    if [[ "$got" == "$esperado" ]]; then
+        pass "$desc"
+    else
+        fail "$desc: esperado '$esperado', veio '$got'"
+    fi
+}
+
+test_repasse_force() {
+    check_repasse "force repassa 'force <nome>' ao binário" $'force\nmeu-backup' force meu-backup
+}
+
+test_repasse_restore_yes() {
+    check_repasse "restore repassa 'restore <nome> --yes' ao binário" $'restore\nmeu-backup\n--yes' restore meu-backup --yes
+}
+
+test_repasse_validate() {
+    check_repasse "validate repassa 'validate' ao binário" "validate" validate
+}
+
 # --- Execução -----------------------------------------------------------------
 
 test_sintaxe
@@ -141,6 +197,10 @@ test_timer_intervalo
 test_service_campos
 test_install_dry_run
 test_uso_sem_argumento
+test_uso_lista_comandos_novos
+test_repasse_force
+test_repasse_restore_yes
+test_repasse_validate
 
 printf '\nResultado: %d pass, %d fail\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

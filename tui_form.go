@@ -20,6 +20,9 @@ func backupForm(initial Backup) (b Backup, ok bool, err error) {
 	if b.Type == "" {
 		b.Type = backupTypes[0]
 	}
+	if b.RepeatCicle == "" {
+		b.RepeatCicle = "24h"
+	}
 	maxStr := "5"
 	if b.MaxBackups > 0 {
 		maxStr = strconv.Itoa(b.MaxBackups)
@@ -27,6 +30,11 @@ func backupForm(initial Backup) (b Backup, ok bool, err error) {
 
 	form := huh.NewForm(
 		huh.NewGroup(
+			huh.NewInput().
+				Title("Nome").
+				Description("Identificador único da entrada (usado pelos comandos force/restore).").
+				Value(&b.Name).
+				Validate(huh.ValidateNotEmpty()),
 			huh.NewInput().
 				Title("Path local").
 				Description("Diretório ou arquivo local de origem.").
@@ -53,9 +61,14 @@ func backupForm(initial Backup) (b Backup, ok bool, err error) {
 					}
 					return nil
 				}),
+			huh.NewSelect[string]().
+				Title("Ciclo de repetição").
+				Description("Intervalo entre execuções ao longo do dia (24h = 1x/dia no horário).").
+				Options(huh.NewOptions(repeatCicles...)...).
+				Value(&b.RepeatCicle),
 			huh.NewInput().
 				Title("Máximo de backups").
-				Description("Quantos backups manter no remoto (tipo compacted).").
+				Description("Quantos backups manter no remoto. Só se aplica ao tipo compacted; os demais tipos ignoram (vale 1).").
 				Value(&maxStr).
 				Validate(func(s string) error {
 					n, err := strconv.Atoi(strings.TrimSpace(s))
@@ -90,7 +103,7 @@ func backupForm(initial Backup) (b Backup, ok bool, err error) {
 func confirmDelete(b Backup) (ok bool, err error) {
 	var confirm bool
 	err = huh.NewConfirm().
-		Title(fmt.Sprintf("Remover o backup de %s?", b.Path)).
+		Title(fmt.Sprintf("Remover o backup %s?", displayName(b))).
 		Affirmative("Remover").
 		Negative("Cancelar").
 		Value(&confirm).

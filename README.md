@@ -41,13 +41,13 @@ Backup automatizado de pastas para o **Dropbox** usando [rclone](https://rclone.
 ## Como funciona
 
 1. Um **timer systemd de usuário** dispara o binário a cada `BACKUP_INTERVAL_MINUTES` minutos (padrão: 30).
-2. O binário lê o `backups.json` e seleciona as entradas cujo `backup_time` cai dentro da janela atual — exemplo: rodando às 1h15 com intervalo de 30 min, executa os agendamentos entre 1h00 e 1h30.
+2. O binário lê o `backups.json` e seleciona as entradas com algum **slot** na janela atual — os slots do dia de cada entrada são `backup_time` + k·`repeat_cicle` (com `repeat_cicle` vazio ou `24h`, um único slot diário). Exemplo: rodando às 1h15 com intervalo de 30 min, executa os slots entre 1h00 e 1h30.
 3. Cada entrada é executada conforme seu **tipo** (compactado, espelho ou sincronização bidirecional — ver [Tipos de backup](#tipos-de-backup)).
 
 ```mermaid
 flowchart LR
     A["timer systemd<br/>a cada N min"] --> B["binário Go"]
-    B --> C{"backup_time<br/>na janela?"}
+    B --> C{"slot na janela?<br/>(backup_time + k·ciclo)"}
     C -->|sim| D["executa a entrada<br/>conforme o tipo"]
     C -->|não| E["ignora nesta rodada"]
     D --> F["Dropbox<br/>via rclone"]
@@ -129,8 +129,10 @@ Também gitignorado. Array de objetos, um por backup:
 | `path` | string | Pasta local de origem (caminho absoluto). |
 | `rclone_account` | string | Nome do remote rclone (ex.: `dropbox`). |
 | `remote_path` | string | Pasta de destino dentro do remote (ex.: `backups/servidor/dados`). |
-| `backup_time` | string | Horário do agendamento, formato `HH:MM`. |
-| `max_backups` | int | Máximo de arquivos mantidos no remoto (rotação; usado pelo tipo `compacted`). |
+| `backup_time` | string | Horário do primeiro slot do dia, formato `HH:MM`. |
+| `name` | string | Identificador único da entrada — obrigatório em entradas novas; é o endereço usado pelos comandos `force`/`restore`. |
+| `repeat_cicle` | string | Ciclo de repetição dentro do dia: `15m`, `30m`, `1h`, `3h`, `6h`, `12h` ou `24h`. Os slots do dia são `backup_time` + k·ciclo. Vazio ou ausente equivale a `24h` (1x/dia, comportamento histórico). |
+| `max_backups` | int | Máximo de arquivos mantidos no remoto (rotação). **Só tem efeito no tipo `compacted`**; nos demais tipos é ignorado (vale 1). |
 | `type` | string | `compacted`, `folder-backup` ou `folder-sync`. |
 
 ### Tipos de backup
@@ -152,6 +154,8 @@ Exemplo de `backups.json`:
     "rclone_account": "dropbox",
     "remote_path": "backups/servidor/dados",
     "backup_time": "02:00",
+    "name": "dados-compacted",
+    "repeat_cicle": "12h",
     "max_backups": 7,
     "type": "compacted"
   },
@@ -160,7 +164,8 @@ Exemplo de `backups.json`:
     "rclone_account": "dropbox",
     "remote_path": "backups/servidor/nginx",
     "backup_time": "03:00",
-    "max_backups": 3,
+    "name": "nginx-config",
+    "repeat_cicle": "24h",
     "type": "folder-backup"
   }
 ]
@@ -174,7 +179,21 @@ Em vez de editar o JSON na mão, use a interface de terminal:
 ./dropbox-rclone manage
 ```
 
-Permite **listar, adicionar, editar e remover** entradas do `backups.json`, com formulários validados (horário `HH:MM`, tipo entre os três suportados etc.).
+Permite **listar, adicionar, editar e remover** entradas do `backups.json`, com formulários validados (nome, horário `HH:MM`, ciclo de repetição, tipo entre os três suportados etc.).
+
+## Operação manual: force, restore e validate
+
+Além do agendamento, o `service.sh` repassa três comandos ao binário:
+
+```bash
+./service.sh validate            # confere o backups.json e lista todos os problemas (exit != 0 se houver)
+./service.sh force <name>        # executa a entrada <name> agora, ignorando janela e ciclo
+./service.sh restore <name> --yes  # restaura a pasta local a partir do remoto
+```
+
+- **`force`** é útil para testar uma entrada sem esperar o slot. Se o nome não existir, o erro lista os nomes disponíveis.
+- **`restore` é destrutivo:** o conteúdo da pasta local é **apagado e repovoado** a partir do remoto — no tipo `compacted`, extrai o `.tar.gz` mais recente; nos demais, faz `rclone sync` remoto→local. Por isso exige a flag `--yes`; sem ela, aborta sem tocar em nada.
+- **`validate`** agrega todos os problemas de configuração (campos obrigatórios, `name` duplicado, `repeat_cicle` inválido ou menor que o intervalo do timer), um por linha.
 
 ## Serviço (timer systemd)
 
@@ -217,10 +236,11 @@ dropbox-rclone/
 ├── install.sh           ← instala rclone e Go (apt, pacman ou dnf, conforme a distro)
 ├── setup-rclone.sh      ← valida a conexão com o remote Dropbox
 ├── service.sh           ← instala/gerencia a unit + timer systemd de usuário
-├── main.go              ← entry point: seleção por janela e subcomando `manage`
+├── main.go              ← entry point: agendamento por janela/ciclos e subcomandos (manage, validate, force, restore)
 ├── backup.go            ← os três tipos de backup (compacted, folder-backup, folder-sync)
 ├── executor.go          ← execução das entradas selecionadas, com relatório por entrada
-├── store.go             ← leitura/escrita do backups.json
+├── restore.go           ← restore manual: rclone sync remoto→local ou extração do .tar.gz mais recente
+├── store.go             ← leitura/escrita e validação do backups.json
 ├── tui.go / tui_form.go ← TUI de gerenciamento das entradas (Charm)
 ├── tests/               ← testes shell dos scripts de instalação, setup e serviço
 └── pop/                 ← harness do ProjectOfProjects (planejamento, não faz parte do produto)
