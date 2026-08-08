@@ -33,7 +33,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| [[2.2.1-script-servico-systemd]] | `service.sh` gera unit+timer (`OnUnitActiveSec` a partir do `.env`) com ações install/enable/disable/status/remove. · size: M | 002_planning |
 | `2.2.2-verificacao-da-phase` | Testes shell do `service.sh` (geração dos units, parsing do `.env`) sem tocar systemd real. · size: S | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
