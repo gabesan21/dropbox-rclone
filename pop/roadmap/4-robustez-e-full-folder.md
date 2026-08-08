@@ -22,7 +22,7 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `4.1.2-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
+| [[4.1.2-verificacao-da-phase]] | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | 001_initial_task |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
 
