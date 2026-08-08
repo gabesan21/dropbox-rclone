@@ -65,6 +65,34 @@ func TestPickLatestArchiveSemArquivoDoPrefixo(t *testing.T) {
 	}
 }
 
+func TestPickLatestFolder(t *testing.T) {
+	names := []string{
+		"docs-20240101-000000/",
+		"docs-20240601-120000/",
+		"docs-20240301-060000/",
+		"outro-20249999-000000/",
+		"docs-arquivo.tar.gz",
+		"",
+	}
+	got, ok := pickLatestFolder(names, "docs")
+	if !ok || got != "docs-20240601-120000" {
+		t.Fatalf("esperava docs-20240601-120000, veio %q (ok=%v)", got, ok)
+	}
+}
+
+func TestPickLatestFolderSemBarraFinal(t *testing.T) {
+	got, ok := pickLatestFolder([]string{"docs-20240101-000000", "docs-20240301-060000/"}, "docs")
+	if !ok || got != "docs-20240301-060000" {
+		t.Fatalf("esperava docs-20240301-060000, veio %q (ok=%v)", got, ok)
+	}
+}
+
+func TestPickLatestFolderSemPastaDoPrefixo(t *testing.T) {
+	if _, ok := pickLatestFolder([]string{"outro-20240101-000000/"}, "docs"); ok {
+		t.Fatal("esperava ok=false sem pastas do prefixo")
+	}
+}
+
 func TestCleanDir(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0o644); err != nil {
