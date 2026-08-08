@@ -40,8 +40,22 @@ func main() {
 
 	fmt.Printf("Backups agendados para %s - %s:\n",
 		now.Format("15:04"), now.Add(time.Duration(interval)*time.Minute).Format("15:04"))
+
+	var failed bool
 	for _, b := range due {
 		fmt.Printf("  - %s -> %s:%s (%s, max=%d)\n",
 			b.Path, b.RcloneAccount, b.RemotePath, b.Type, b.MaxBackups)
+
+		fmt.Printf("    Executando...\n")
+		if err := RunBackup(b); err != nil {
+			fmt.Fprintf(os.Stderr, "    ERRO: %v\n", err)
+			failed = true
+		} else {
+			fmt.Printf("    OK\n")
+		}
+	}
+
+	if failed {
+		os.Exit(1)
 	}
 }
