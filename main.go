@@ -8,6 +8,18 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		if os.Args[1] == "manage" {
+			if err := runManage("backups.json"); err != nil {
+				fmt.Fprintf(os.Stderr, "ERRO: %v\n", err)
+				os.Exit(1)
+			}
+			return
+		}
+		fmt.Fprintf(os.Stderr, "uso: dropbox-rclone [manage]\n")
+		os.Exit(2)
+	}
+
 	intervalStr := os.Getenv("BACKUP_INTERVAL_MINUTES")
 	if intervalStr == "" {
 		intervalStr = "30"
