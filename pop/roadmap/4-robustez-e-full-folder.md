@@ -16,13 +16,12 @@
 
 ## Phase 4.1 — Compacted robusto
 
-- **Status:** pendente
+- **Status:** concluída
 - **Descrição:** compactação sem esgotar memória/disco e aborto antecipado quando não houver espaço suficiente antes de começar.
 - **Specs:** [[pop/specs/backup-config-e-cli|backup-config-e-cli]]
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| [[4.1.2-verificacao-da-phase]] | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | 001_initial_task |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
 
