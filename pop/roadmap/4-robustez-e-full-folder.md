@@ -33,7 +33,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| [[4.2.1-tipo-full-folder]] | Novo tipo full-folder: copia o folder como pasta datada (`<base>-<AAAAMMDD-HHMMSS>/`), aplica max_backups excluindo a mais antiga; validação, TUI, restore e README acompanham. · size: M | 001_initial_task |
 | `4.2.2-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
