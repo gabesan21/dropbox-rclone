@@ -16,6 +16,8 @@ Validação ponta a ponta do dropbox-rclone num servidor real via SSH. Explicaç
 
 - [ ] Rodar `./install.sh`.
 - [ ] Pass é: script detecta sua distro, instala (ou confirma) rclone e Go, e termina com "Instalação concluída com sucesso".
+- [ ] Compilar o binário: `go build -o dropbox-rclone .`
+- [ ] Pass é: `ls -l dropbox-rclone` mostra o executável.
 
 ## 3. Token Dropbox (headless)
 
