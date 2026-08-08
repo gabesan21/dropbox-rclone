@@ -33,7 +33,7 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `3.2.2-validacao-pelo-humano` | (user) Humano executa o checklist em servidor remoto e reporta; agente corrige o que surgir. · size: M · yolo: não | não iniciada |
+| [[3.2.2-validacao-pelo-humano]] | (user) Humano executa o checklist em servidor remoto e reporta; agente corrige o que surgir. · size: M · yolo: não | 001_initial_task |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
 > Phase 3.2 dispensa `verificacao-da-phase`: a verificação é a própria execução humana do checklist.
