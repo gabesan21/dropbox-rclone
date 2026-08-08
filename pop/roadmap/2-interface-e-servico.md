@@ -23,7 +23,7 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `2.1.2-verificacao-da-phase` | Testes Go do CRUD (save/validação) + build da TUI. · size: M | não iniciada |
+| [[2.1.2-verificacao-da-phase]] | Testes Go do CRUD (save/validação) + build da TUI. · size: M | 001_initial_task |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
 
