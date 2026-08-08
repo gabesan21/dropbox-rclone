@@ -113,8 +113,24 @@ func TestValidateBackupRepeatCicleValidos(t *testing.T) {
 	}
 }
 
+func TestValidateBackupExigeMaxBackupsFullFolder(t *testing.T) {
+	// full-folder também tem rotação: max_backups >= 1 é obrigatório.
+	b := validBackup()
+	b.Type = "full-folder"
+	b.MaxBackups = 0
+	if err := ValidateBackup(b); err == nil {
+		t.Error("esperava erro para full-folder com max_backups 0, veio nil")
+	}
+
+	b.MaxBackups = 3
+	if err := ValidateBackup(b); err != nil {
+		t.Errorf("full-folder com max_backups 3 deveria ser válido: %v", err)
+	}
+}
+
 func TestValidateBackupIgnoraMaxBackupsForaDeCompacted(t *testing.T) {
-	// max_backups só é conferido no tipo compacted; nos demais é ignorado.
+	// max_backups só é conferido nos tipos com rotação (compacted e
+	// full-folder); nos demais é ignorado.
 	for _, typ := range []string{"folder-backup", "folder-sync"} {
 		b := validBackup()
 		b.Type = typ

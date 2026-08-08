@@ -9,7 +9,7 @@ import (
 )
 
 // backupTypes são os tipos de backup aceitos no backups.json.
-var backupTypes = []string{"compacted", "folder-backup", "folder-sync"}
+var backupTypes = []string{"compacted", "folder-backup", "folder-sync", "full-folder"}
 
 // SaveBackups grava a lista de backups no arquivo JSON, com indentação.
 func SaveBackups(path string, backups []Backup) error {
@@ -66,9 +66,10 @@ func validateFields(b Backup) []ValidationIssue {
 			add("repeat_cicle", fmt.Sprintf("inválido %q: use %s", b.RepeatCicle, strings.Join(repeatCicles, ", ")))
 		}
 	}
-	// max_backups só tem efeito no tipo compacted; nos demais é ignorado.
-	if b.Type == "compacted" && b.MaxBackups < 1 {
-		add("max_backups", "deve ser >= 1 no tipo compacted")
+	// max_backups só tem efeito nos tipos com rotação (compacted e
+	// full-folder); nos demais é ignorado.
+	if (b.Type == "compacted" || b.Type == "full-folder") && b.MaxBackups < 1 {
+		add("max_backups", "deve ser >= 1 nos tipos compacted e full-folder")
 	}
 
 	validType := false
