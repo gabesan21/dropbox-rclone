@@ -68,7 +68,7 @@ func backupForm(initial Backup) (b Backup, ok bool, err error) {
 				Value(&b.RepeatCicle),
 			huh.NewInput().
 				Title("Máximo de backups").
-				Description("Quantos backups manter no remoto. Só se aplica ao tipo compacted; os demais tipos ignoram (vale 1).").
+				Description("Quantos backups manter no remoto. Só se aplica aos tipos compacted e full-folder; os demais ignoram (vale 1).").
 				Value(&maxStr).
 				Validate(func(s string) error {
 					n, err := strconv.Atoi(strings.TrimSpace(s))

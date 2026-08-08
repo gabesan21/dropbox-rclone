@@ -20,6 +20,8 @@ func RunRestore(b Backup) error {
 	switch b.Type {
 	case "compacted":
 		return restoreCompacted(b)
+	case "full-folder":
+		return restoreFullFolder(b)
 	case "folder-backup", "folder-sync":
 		return restoreSync(b)
 	default:
@@ -94,6 +96,64 @@ func restoreCompacted(b Backup) error {
 		return fmt.Errorf("extraindo %s em %s: %w", latest, b.Path, err)
 	}
 	return nil
+}
+
+// restoreFullFolder limpa a pasta local e a repovoa com o conteúdo da
+// pasta datada <base>-<AAAAMMDD-HHMMSS> mais recente do remoto.
+func restoreFullFolder(b Backup) error {
+	remote := fmt.Sprintf("%s:%s", b.RcloneAccount, b.RemotePath)
+	base := filepath.Base(strings.TrimSuffix(b.Path, "/"))
+
+	latest, err := latestRemoteFolder(remote, base)
+	if err != nil {
+		return err
+	}
+
+	if err := cleanDir(b.Path); err != nil {
+		return fmt.Errorf("limpando %s: %w", b.Path, err)
+	}
+
+	remoteFolder := fmt.Sprintf("%s/%s", remote, latest)
+	cpCmd := exec.Command("rclone", "copy", remoteFolder, b.Path, "--progress")
+	cpCmd.Stdout = os.Stdout
+	cpCmd.Stderr = os.Stderr
+	if err := cpCmd.Run(); err != nil {
+		return fmt.Errorf("copiando %s -> %s: %w", remoteFolder, b.Path, err)
+	}
+	return nil
+}
+
+// latestRemoteFolder retorna a pasta <prefix>-* mais recente do remoto.
+func latestRemoteFolder(remote, prefix string) (string, error) {
+	lsCmd := exec.Command("rclone", "lsf", remote, "--dirs-only")
+	out, err := lsCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("listando %s: %w", remote, err)
+	}
+	latest, ok := pickLatestFolder(strings.Split(strings.TrimSpace(string(out)), "\n"), prefix)
+	if !ok {
+		return "", fmt.Errorf("nenhuma pasta %s-* encontrada em %s", prefix, remote)
+	}
+	return latest, nil
+}
+
+// pickLatestFolder escolhe, entre os nomes listados, a pasta
+// <prefix>-<AAAAMMDD-HHMMSS> mais recente (o timestamp no nome torna a
+// ordenação lexicográfica cronológica). `rclone lsf --dirs-only` devolve
+// nomes com "/" final — tratado no filtro e descartado no resultado.
+func pickLatestFolder(names []string, prefix string) (string, bool) {
+	var folders []string
+	for _, name := range names {
+		name = strings.TrimSuffix(name, "/")
+		if resto, ok := strings.CutPrefix(name, prefix+"-"); ok && stampDatado(resto) {
+			folders = append(folders, name)
+		}
+	}
+	if len(folders) == 0 {
+		return "", false
+	}
+	sort.Strings(folders)
+	return folders[len(folders)-1], true
 }
 
 // latestRemoteArchive retorna o arquivo <prefix>-*.tar.gz mais recente do remoto.
