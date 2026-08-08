@@ -34,8 +34,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `1.2.2-arquivo-env` | Cria `.env` com intervalo padrão de 30 min e registra `.env` no `.gitignore`. · size: S | não iniciada |
-| `1.2.3-arquivo-json-backups` | Cria `backups.json` de exemplo com array de objetos `{path, rclone_account, remote_path, backup_time, max_backups, type}` (`type`: `compacted` \| `folder-backup` \| `folder-sync`) e registra no `.gitignore`. · size: S | não iniciada |
 | `1.2.4-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
 
 ## Phase 1.3 — Motor de agendamento e execução de backup
