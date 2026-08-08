@@ -63,7 +63,7 @@ Entrada que não couber em 800 caracteres depois disso quase sempre são **duas 
 2. Comparar original e candidato com o inventário do preflight; qualquer perda irredutível reprova o candidato.
    - **A comparação é determinística, não impressão de leitura.** Extraia do original o conjunto de hashes de commit (inclusive os citados no corpo, não só o do frontmatter) e os valores literais de `pr` e `authorization`; confira que todos aparecem no candidato. Token presente no original e ausente depois é perda, mesmo que o texto pareça equivalente — foi assim que uma conversão perdeu 8 hashes em 2026-07-27.
 3. **Medir o candidato antes de gravar**, com `wc -c` — não depois, e não a olho. Teto é `≤1200` no ledger e `≤800` por entrada; **1201 é violação**, e gravar para depois descobrir isso deixa o escopo pior do que estava. Confirmar também datas em `AAAA-MM-DD` e pasta igual a `finished`.
-4. Validar wikilinks — inclusive a evidência de cada entrada — e executar `python3 scripts/pop_validate.py` no escopo corrente. A validação é do **principal**, depois de todas as ondas: worker que valida sozinho aprova o próprio pedaço sem ver a colisão.
+4. Validar wikilinks — inclusive a evidência de cada entrada — e executar `python3 pop/scripts/pop_validate.py` no escopo corrente. A validação é do **principal**, depois de todas as ondas: worker que valida sozinho aprova o próprio pedaço sem ver a colisão.
 5. Revisar o diff arquivo a arquivo. Se a prova de preservação falhar, restaurar o original e reportar **BLOCKED**.
 6. Backup, se você fizer um, mora **fora** de `memory/` — dentro dela, uma pasta que não seja data é violação de layout, e você teria trocado uma dívida por outra. Apague-o ao fechar; a prova durável é o Git.
 

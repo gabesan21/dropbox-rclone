@@ -7,3 +7,10 @@ backups.json
 
 # Binário compilado
 /dropbox-rclone
+
+# included-harness: preservar a anatomia standalone no Git
+!pop/worktrees/
+pop/worktrees/*
+!pop/worktrees/.gitkeep
+# included-harness: bytecode dos scripts
+__pycache__/
