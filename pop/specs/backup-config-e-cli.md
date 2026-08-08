@@ -25,6 +25,8 @@ Formato do `backups.json` (configuração declarativa dos backups) e a superfíc
 - Dado `service.sh force <name>`, quando invocado, então o binário executa a entrada daquele nome imediatamente, ignorando janela e ciclo.
 - Dado `service.sh restore <name> --yes`, quando invocado, então o conteúdo da pasta local é limpo e repovoado a partir do remoto (compacted: extrai o `.tar.gz` mais recente; demais tipos: `rclone sync` remoto→local).
 - Dado `service.sh validate`, quando o JSON tem problemas, então todos são listados (índice, campo, motivo) e o exit code é não-zero; sem problemas, exit 0.
+- Dado um backup `compacted`, quando executa, então a pasta é compactada em streaming direto para o remoto (`tar -cz` pipado para `rclone rcat`), sem nenhum arquivo temporário local; em sucesso, o remoto ganha `<pasta>-<AAAAMMDD-HHMMSS>.tar.gz` e a rotação por `max_backups` remove os mais antigos.
+- Dada origem de `compacted` inexistente, não-diretório ou sem permissão de leitura, quando o backup inicia, então aborta com erro que identifica a origem, antes de qualquer compactação ou upload.
 
 ## Invariantes
 
@@ -34,6 +36,9 @@ Formato do `backups.json` (configuração declarativa dos backups) e a superfíc
 - `repeat_cicle` menor que `BACKUP_INTERVAL_MINUTES` é configuração inválida (slots seriam perdidos).
 - `restore` nunca executa sem a flag `--yes` e recusa path vazio, `/`, inexistente ou não-diretório.
 - Load do JSON nunca falha por ausência de `name` ou `repeat_cicle` — validação é camada separada do parse.
+- Backup `compacted` nunca cria arquivo temporário local, em sucesso ou em falha — a compactação flui em streaming para o remoto.
+- Falha na compactação ou no upload de um `compacted` remove o objeto remoto parcial (best-effort, com aviso se a remoção falhar) — nenhum parcial sobra, nem local nem remoto.
+- Erro de qualquer lado do pipe (compactação ou upload) derruba o backup — nenhum dos dois erros é engolido pelo stream.
 
 ## Interfaces
 
@@ -56,6 +61,7 @@ Formato do `backups.json` (configuração declarativa dos backups) e a superfíc
 - [ ] `validate` agrega múltiplos problemas de múltiplas entradas e ajusta o exit code.
 - [ ] `restore` exige `--yes`, aplica os guards de path e escolhe o `.tar.gz` mais recente no tipo compacted.
 - [ ] `max_backups` fora de `compacted` não gera erro nem rotação.
+- [ ] `compacted` aborta antes de compactar quando a origem é inexistente, não-diretório ou ilegível; em falha de stream não sobra parcial local nem remoto.
 
 ## Fora de escopo
 

@@ -10,31 +10,57 @@ import (
 	"time"
 )
 
-// RunCompacted executa backup compactado: gera arquivo .tar.gz datado, sobe para o remoto
-// e remove os mais antigos quando exceder MaxBackups.
+// RunCompacted executa backup compactado: compacta a pasta em streaming direto
+// para o remoto (tar -cz | rclone rcat), sem nenhum arquivo temporário local.
+// Aborta antes de iniciar quando a origem não é um diretório legível; em
+// qualquer falha no meio do stream remove o objeto remoto parcial. Em sucesso,
+// remove os mais antigos quando exceder MaxBackups.
 func RunCompacted(b Backup) error {
+	src := strings.TrimSuffix(b.Path, "/")
+	base := filepath.Base(src)
+
+	// Falha rápida: sem diretório legível, nada é compactado nem enviado.
+	if err := checkReadableDir(src); err != nil {
+		return err
+	}
+	logSourceSize(src)
+
 	// Nome do arquivo: <nome-da-pasta>-<AAAAMMDD-HHMMSS>.tar.gz
-	base := filepath.Base(strings.TrimSuffix(b.Path, "/"))
 	stamp := time.Now().Format("20060102-150405")
 	archiveName := fmt.Sprintf("%s-%s.tar.gz", base, stamp)
-	archivePath := filepath.Join(os.TempDir(), archiveName)
-
-	// Compacta a pasta local.
-	tarCmd := exec.Command("tar", "-czf", archivePath, "-C", filepath.Dir(b.Path), base)
-	tarCmd.Stdout = os.Stdout
-	tarCmd.Stderr = os.Stderr
-	if err := tarCmd.Run(); err != nil {
-		return fmt.Errorf("compactando %s: %w", b.Path, err)
-	}
-	defer os.Remove(archivePath)
-
-	// Sobe para o remoto.
 	remote := fmt.Sprintf("%s:%s", b.RcloneAccount, b.RemotePath)
-	copyCmd := exec.Command("rclone", "copy", archivePath, remote, "--progress")
-	copyCmd.Stdout = os.Stdout
-	copyCmd.Stderr = os.Stderr
-	if err := copyCmd.Run(); err != nil {
-		return fmt.Errorf("subindo %s para %s: %w", archiveName, remote, err)
+	remoteFile := fmt.Sprintf("%s/%s", remote, archiveName)
+
+	// Pipe tar -> rclone: a saída da compactação alimenta o upload direto.
+	tarCmd := exec.Command("tar", "-cz", "-C", filepath.Dir(src), base)
+	tarCmd.Stderr = os.Stderr
+	tarOut, err := tarCmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("preparando compactação de %s: %w", src, err)
+	}
+	rcatCmd := exec.Command("rclone", "rcat", remoteFile)
+	rcatCmd.Stdin = tarOut
+	rcatCmd.Stdout = os.Stdout
+	rcatCmd.Stderr = os.Stderr
+
+	if err := rcatCmd.Start(); err != nil {
+		return fmt.Errorf("iniciando upload para %s: %w", remoteFile, err)
+	}
+	if err := tarCmd.Start(); err != nil {
+		tarOut.Close() // EOF no stdin do rclone, destravando o Wait
+		rcatCmd.Wait()
+		removeRemotePartial(remoteFile)
+		return fmt.Errorf("iniciando compactação de %s: %w", src, err)
+	}
+
+	// Espera os dois lados do pipe: erro de qualquer um derruba o backup
+	// (equivalente ao pipefail do shell). tar primeiro: seu Wait fecha o
+	// pipe, dando EOF ao rclone, que então termina e libera o Wait do rcat.
+	tarErr := tarCmd.Wait()
+	rcatErr := rcatCmd.Wait()
+	if tarErr != nil || rcatErr != nil {
+		removeRemotePartial(remoteFile)
+		return fmt.Errorf("backup de %s falhou (compactação: %v; upload: %v)", src, tarErr, rcatErr)
 	}
 
 	// Lista backups existentes no remoto e aplica rotação.
@@ -43,6 +69,46 @@ func RunCompacted(b Backup) error {
 	}
 
 	return nil
+}
+
+// checkReadableDir garante que a origem existe, é diretório e pode ser aberta
+// para leitura — pré-condição para iniciar o stream.
+func checkReadableDir(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("origem %s inacessível: %w", path, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("origem %s não é um diretório", path)
+	}
+	dir, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("origem %s sem permissão de leitura: %w", path, err)
+	}
+	dir.Close()
+	return nil
+}
+
+// logSourceSize registra o tamanho estimado da origem como informação —
+// best-effort, nunca impede o backup.
+func logSourceSize(path string) {
+	out, err := exec.Command("du", "-sb", path).Output()
+	if err != nil {
+		return
+	}
+	fields := strings.Fields(string(out))
+	if len(fields) > 0 {
+		fmt.Printf("Tamanho estimado da origem %s: %s bytes\n", path, fields[0])
+	}
+}
+
+// removeRemotePartial apaga o objeto remoto deixado por um stream que falhou
+// no meio — best-effort: se a remoção também falhar, só registra o aviso.
+func removeRemotePartial(remoteFile string) {
+	delCmd := exec.Command("rclone", "deletefile", remoteFile)
+	if err := delCmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "aviso: não foi possível remover o parcial remoto %s: %v\n", remoteFile, err)
+	}
 }
 
 // rotateBackups mantém apenas os MaxBackups arquivos mais recentes no remoto.
