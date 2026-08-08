@@ -18,18 +18,17 @@
 
 ## Phase 3.1 — README completo
 
-- **Status:** pendente
+- **Status:** concluída
 - **Descrição:** README pt-BR cobrindo instalação rclone+Go, configuração Dropbox headless via SSH, `.env`/`backups.json`, TUI `manage` e serviço `service.sh`.
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `3.1.2-verificacao-da-phase` | Confere o README contra os artefatos reais (comandos, flags, caminhos) e conserta divergências. · size: S | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
 
 ## Phase 3.2 — Validação em servidor remoto
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Descrição:** Checklist de validação escrito pelo agente; execução (instalar, configurar, testar, rodar) é gate humano no final de tudo.
 
 | Task | Descrição (≤1 linha) | Status |
