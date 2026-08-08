@@ -137,15 +137,15 @@ func latestRemoteFolder(remote, prefix string) (string, error) {
 	return latest, nil
 }
 
-// pickLatestFolder escolhe, entre os nomes listados, a pasta <prefix>-*
-// mais recente (o timestamp no nome torna a ordenação lexicográfica
-// cronológica). `rclone lsf --dirs-only` devolve nomes com "/" final —
-// tratado no filtro e descartado no resultado.
+// pickLatestFolder escolhe, entre os nomes listados, a pasta
+// <prefix>-<AAAAMMDD-HHMMSS> mais recente (o timestamp no nome torna a
+// ordenação lexicográfica cronológica). `rclone lsf --dirs-only` devolve
+// nomes com "/" final — tratado no filtro e descartado no resultado.
 func pickLatestFolder(names []string, prefix string) (string, bool) {
 	var folders []string
 	for _, name := range names {
 		name = strings.TrimSuffix(name, "/")
-		if name != "" && strings.HasPrefix(name, prefix+"-") {
+		if resto, ok := strings.CutPrefix(name, prefix+"-"); ok && stampDatado(resto) {
 			folders = append(folders, name)
 		}
 	}

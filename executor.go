@@ -234,7 +234,7 @@ func pastasExcedentes(names []string, prefix string, maxBackups int) []string {
 	var dirs []string
 	for _, name := range names {
 		name = strings.TrimSuffix(name, "/")
-		if name != "" && strings.HasPrefix(name, prefix+"-") {
+		if resto, ok := strings.CutPrefix(name, prefix+"-"); ok && stampDatado(resto) {
 			dirs = append(dirs, name)
 		}
 	}
@@ -243,6 +243,14 @@ func pastasExcedentes(names []string, prefix string, maxBackups int) []string {
 	}
 	sort.Strings(dirs)
 	return dirs[:len(dirs)-maxBackups]
+}
+
+// stampDatado confirma que o sufixo do nome é exatamente o stamp
+// AAAAMMDD-HHMMSS gerado na criação da pasta datada — rejeita arquivos
+// (.tar.gz) e qualquer nome fora do padrão.
+func stampDatado(s string) bool {
+	_, err := time.Parse("20060102-150405", s)
+	return err == nil
 }
 
 // RunFolderBackup espelha o conteúdo local no remoto (unidirecional, local como referência).
