@@ -29,7 +29,7 @@
 
 ## Phase 1.2 — Configuração rclone/Dropbox e arquivos .env/JSON
 
-- **Status:** pendente
+- **Status:** concluída
 - **Descrição:** Configuração do backend Dropbox no rclone e criação dos arquivos de configuração `.env` e `backups.json`.
 
 | Task | Descrição (≤1 linha) | Status |
@@ -42,7 +42,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `1.3.1-leitura-agendamentos` | Implementa em Go a leitura de `backups.json` e filtro de entradas cujo `backup_time` cai no intervalo atual definido pelo `.env`. · size: M | não iniciada |
 | `1.3.2-execucao-backup-compacted` | Implementa backup `compacted`: gera arquivo compactado com data no remoto e aplica rotação por `max_backups`. · size: L | não iniciada |
 | `1.3.3-execucao-backup-folder` | Implementa backup `folder-backup`: espelha o conteúdo local no remoto via rclone, com o local como referência. · size: M | não iniciada |
 | `1.3.4-execucao-sync-folder` | Implementa backup `folder-sync`: sincroniza o conteúdo entre local e remoto respeitando ambas as fontes. · size: M | não iniciada |
