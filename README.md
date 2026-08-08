@@ -1,8 +1,10 @@
-```
+<div align="center">
+<pre>
 ░█▀▄░█▀▄░█▀█░█▀█░█▀▄░█▀█░█░█░░░░░█▀▄░█▀▀░█░░░█▀█░█▀█░█▀▀
 ░█░█░█▀▄░█░█░█▀▀░█▀▄░█░█░▄▀▄░▄▄▄░█▀▄░█░░░█░░░█░█░█░█░█▀▀
 ░▀▀░░▀░▀░▀▀▀░▀░░░▀▀░░▀▀▀░▀░▀░░░░░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀░▀░▀▀▀
-```
+</pre>
+</div>
 
 <p align="center">
   <b>Backup automatizado de pastas para o Dropbox, feito para servidores remotos sem browser.</b>
