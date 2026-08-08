@@ -160,6 +160,91 @@ func rotateBackups(remote, prefix string, maxBackups int) error {
 	return nil
 }
 
+// RunFullFolder copia a pasta local para o remoto como pasta datada
+// <base>-<AAAAMMDD-HHMMSS>/ (rclone copy), sem compactação — o equivalente
+// do compacted para quem quer histórico versionado sem o custo do tar.
+// Aborta antes de copiar quando a origem não é um diretório legível. Em
+// sucesso, remove as pastas datadas mais antigas quando exceder MaxBackups.
+func RunFullFolder(b Backup) error {
+	src := strings.TrimSuffix(b.Path, "/")
+	base := filepath.Base(src)
+
+	// Falha rápida: sem diretório legível, nada é copiado para o remoto.
+	if err := checkReadableDir(src); err != nil {
+		return err
+	}
+	logSourceSize(src)
+
+	// Nome da pasta: <nome-da-pasta>-<AAAAMMDD-HHMMSS>/ — mesmo stamp do compacted.
+	stamp := time.Now().Format("20060102-150405")
+	remote := fmt.Sprintf("%s:%s", b.RcloneAccount, b.RemotePath)
+	remoteDir := fmt.Sprintf("%s/%s-%s", remote, base, stamp)
+
+	cmd := exec.Command("rclone", "copy", src, remoteDir,
+		"--progress",
+		"--create-empty-src-dirs",
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("copiando %s -> %s: %w", src, remoteDir, err)
+	}
+
+	// Lista pastas datadas existentes no remoto e aplica rotação.
+	if err := rotateFolders(remote, base, b.MaxBackups); err != nil {
+		return fmt.Errorf("aplicando rotação em %s: %w", remote, err)
+	}
+
+	return nil
+}
+
+// rotateFolders mantém apenas as MaxBackups pastas datadas mais recentes no
+// remoto — irmã da rotação de arquivos do compacted, sem mecanismo compartilhado.
+func rotateFolders(remote, prefix string, maxBackups int) error {
+	if maxBackups <= 0 {
+		return nil
+	}
+
+	// Lista só diretórios no remoto (nomes vêm com "/" final — tratado na seleção).
+	lsCmd := exec.Command("rclone", "lsf", remote, "--dirs-only")
+	out, err := lsCmd.Output()
+	if err != nil {
+		return fmt.Errorf("listando %s: %w", remote, err)
+	}
+
+	toDelete := pastasExcedentes(strings.Split(strings.TrimSpace(string(out)), "\n"), prefix, maxBackups)
+	for _, d := range toDelete {
+		purgeCmd := exec.Command("rclone", "purge", fmt.Sprintf("%s/%s", remote, d))
+		purgeCmd.Stdout = os.Stdout
+		purgeCmd.Stderr = os.Stderr
+		if err := purgeCmd.Run(); err != nil {
+			return fmt.Errorf("removendo %s: %w", d, err)
+		}
+		fmt.Printf("Removida pasta de backup antiga: %s\n", d)
+	}
+
+	return nil
+}
+
+// pastasExcedentes seleciona, entre os nomes listados (com ou sem "/" final),
+// as pastas <prefix>-<AAAAMMDD-HHMMSS> que excedem maxBackups — as mais
+// antigas primeiro (o timestamp no nome torna a ordenação lexicográfica
+// cronológica).
+func pastasExcedentes(names []string, prefix string, maxBackups int) []string {
+	var dirs []string
+	for _, name := range names {
+		name = strings.TrimSuffix(name, "/")
+		if name != "" && strings.HasPrefix(name, prefix+"-") {
+			dirs = append(dirs, name)
+		}
+	}
+	if len(dirs) <= maxBackups {
+		return nil
+	}
+	sort.Strings(dirs)
+	return dirs[:len(dirs)-maxBackups]
+}
+
 // RunFolderBackup espelha o conteúdo local no remoto (unidirecional, local como referência).
 func RunFolderBackup(b Backup) error {
 	remote := fmt.Sprintf("%s:%s", b.RcloneAccount, b.RemotePath)
@@ -198,6 +283,8 @@ func RunBackup(b Backup) error {
 	switch b.Type {
 	case "compacted":
 		return RunCompacted(b)
+	case "full-folder":
+		return RunFullFolder(b)
 	case "folder-backup":
 		return RunFolderBackup(b)
 	case "folder-sync":

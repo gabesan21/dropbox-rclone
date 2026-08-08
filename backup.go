@@ -15,8 +15,8 @@ type Backup struct {
 	BackupTime    string `json:"backup_time"` // formato "HH:MM"
 	Name          string `json:"name"`
 	RepeatCicle   string `json:"repeat_cicle"` // 15m|30m|1h|3h|6h|12h|24h; vazio = 24h (1x/dia)
-	MaxBackups    int    `json:"max_backups"`  // só tem efeito no tipo compacted
-	Type          string `json:"type"`         // compacted | folder-backup | folder-sync
+	MaxBackups    int    `json:"max_backups"`  // só tem efeito nos tipos compacted e full-folder
+	Type          string `json:"type"`         // compacted | folder-backup | folder-sync | full-folder
 }
 
 // repeatCicles são os ciclos aceitos; todos dividem 24h, mantendo o padrão
