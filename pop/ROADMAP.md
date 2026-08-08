@@ -8,7 +8,7 @@ Ficha: [[pop/PROJECT|dropbox-rclone]]
 
 | # | Epoch | Descrição (≤1 linha) | Status |
 |---|-------|----------------------|--------|
-| 1 | [[pop/roadmap/1-nucleo-backup\|Núcleo: instalação, configuração e motor de backup]] | Script de instalação, configuração rclone/Dropbox, arquivos .env/JSON e motor de agendamento em Go. | em andamento |
+| 1 | [[pop/roadmap/1-nucleo-backup\|Núcleo: instalação, configuração e motor de backup]] | Script de instalação, configuração rclone/Dropbox, arquivos .env/JSON e motor de agendamento em Go. | concluída |
 | 2 | [[pop/roadmap/2-interface-e-servico\|Interface e serviço]] | TUI de gestão do JSON e serviço systemd de execução periódica. | pendente |
 | 3 | [[pop/roadmap/3-documentacao-e-validacao\|Documentação e validação]] | README completo e validação em servidor remoto. | pendente |
 

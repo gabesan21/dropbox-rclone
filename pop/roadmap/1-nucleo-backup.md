@@ -1,7 +1,7 @@
 # Epoch 1 — Núcleo: instalação, configuração e motor de backup
 
 - **Projeto:** [[pop/PROJECT|dropbox-rclone]] · **Roadmap:** [[pop/ROADMAP|Roadmap]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Descrição:** Script de instalação, configuração rclone/Dropbox, arquivos .env/JSON e motor de agendamento em Go.
 - **Yolo:** sim
 - **Abandonar/pausar se:** rclone não suportar Dropbox de forma estável nas distros alvo.
@@ -37,7 +37,7 @@
 
 ## Phase 1.3 — Motor de agendamento e execução de backup
 
-- **Status:** pendente
+- **Status:** concluída
 - **Descrição:** Programa em Go que lê o JSON, filtra backups no intervalo atual e executa o tipo de backup correto (`compacted`, `folder-backup` ou `folder-sync`) com política de retenção.
 
 | Task | Descrição (≤1 linha) | Status |
