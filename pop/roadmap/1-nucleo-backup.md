@@ -42,7 +42,4 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `1.3.2-execucao-backup-compacted` | Implementa backup `compacted`: gera arquivo compactado com data no remoto e aplica rotação por `max_backups`. · size: L | não iniciada |
-| `1.3.3-execucao-backup-folder` | Implementa backup `folder-backup`: espelha o conteúdo local no remoto via rclone, com o local como referência. · size: M | não iniciada |
-| `1.3.4-execucao-sync-folder` | Implementa backup `folder-sync`: sincroniza o conteúdo entre local e remoto respeitando ambas as fontes. · size: M | não iniciada |
 | `1.3.5-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
