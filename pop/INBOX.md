@@ -73,6 +73,7 @@ SORT claimed_at ASC
 
 Relatórios da skill `weekly-review` são linkados aqui, mais recente primeiro.
 
+- [[pop/notes/2026-08-08-weekly-review|2026-08-08 — weekly review]] — leia quando quiser o panorama do projeto: propostas de specs, árvore DOX e drift de harness gerido (com questão aberta).
 
 ---
 
