@@ -174,6 +174,20 @@ func TestValidateBackupsAgregaProblemas(t *testing.T) {
 	}
 }
 
+func TestValidateBackupsMaxBackupsFullFolder(t *testing.T) {
+	// A regra max_backups >= 1 de full-folder propaga na rota agregada:
+	// o problema sai marcado no campo e no índice da entrada defeituosa.
+	b := validBackup()
+	b.Name = "pasta"
+	b.Type = "full-folder"
+	b.MaxBackups = 0
+
+	issues := ValidateBackups([]Backup{validBackup(), b}, 30)
+	if len(issues) != 1 || issues[0].Index != 1 || issues[0].Field != "max_backups" {
+		t.Errorf("esperava 1 problema em max_backups na entrada 1, obteve %v", issues)
+	}
+}
+
 func TestValidateBackupsCicloMenorQueIntervalo(t *testing.T) {
 	b := validBackup()
 	b.RepeatCicle = "15m"

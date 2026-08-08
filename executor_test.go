@@ -18,7 +18,9 @@ import (
 
 // rcloneFake implementa só os subcomandos que o código invoca, mapeando
 // "conta:caminho" para $FAKE_REMOTE_ROOT/caminho e registrando cada
-// invocação em $FAKE_RCLONE_LOG. Falhas são ligadas por env.
+// invocação em $FAKE_RCLONE_LOG. Falhas são ligadas por env. No copy, a
+// direção é decidida pelo 1º argumento: com prefixo "conta:" é
+// remoto->local (restore), sem é local->remoto (backup).
 const rcloneFake = `#!/bin/sh
 echo "rclone $*" >> "$FAKE_RCLONE_LOG"
 cmd="$1"
@@ -38,8 +40,18 @@ copy)
 	if [ -n "$FAKE_RCLONE_FAIL_COPY" ]; then
 		exit 1
 	fi
-	src="$1"
-	dest="$FAKE_REMOTE_ROOT/${2#*:}"
+	case "$1" in
+	*:*)
+		# restore: remoto -> local
+		src="$FAKE_REMOTE_ROOT/${1#*:}"
+		dest="$2"
+		;;
+	*)
+		# backup: local -> remoto
+		src="$1"
+		dest="$FAKE_REMOTE_ROOT/${2#*:}"
+		;;
+	esac
 	mkdir -p "$dest"
 	cp -r "$src"/. "$dest/"
 	;;
@@ -563,6 +575,31 @@ func TestPastasExcedentes(t *testing.T) {
 				if got[i] != tc.want[i] {
 					t.Errorf("posição %d: got %s, want %s", i, got[i], tc.want[i])
 				}
+			}
+		})
+	}
+}
+
+func TestStampDatado(t *testing.T) {
+	// Filtro exato do reparo 04: só o stamp AAAAMMDD-HHMMSS completo é
+	// aceito — .tar.gz, stamp parcial e lixo ficam de fora da rotação.
+	cases := []struct {
+		name    string
+		entrada string
+		want    bool
+	}{
+		{"stamp exato", "20240101-000000", true},
+		{"arquivo .tar.gz", "20240101-000000.tar.gz", false},
+		{"stamp parcial", "20240101", false},
+		{"stamp sem hora completa", "20240101-0000", false},
+		{"lixo", "lixo", false},
+		{"vazio", "", false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := stampDatado(tc.entrada); got != tc.want {
+				t.Errorf("stampDatado(%q): got %v, want %v", tc.entrada, got, tc.want)
 			}
 		})
 	}
