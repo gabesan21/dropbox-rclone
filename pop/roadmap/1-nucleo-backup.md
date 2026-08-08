@@ -1,8 +1,9 @@
 # Epoch 1 — Núcleo: instalação, configuração e motor de backup
 
 - **Projeto:** [[pop/PROJECT|dropbox-rclone]] · **Roadmap:** [[pop/ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** em andamento
 - **Descrição:** Script de instalação, configuração rclone/Dropbox, arquivos .env/JSON e motor de agendamento em Go.
+- **Yolo:** sim
 - **Abandonar/pausar se:** rclone não suportar Dropbox de forma estável nas distros alvo.
 
 > Uma phase por seção; sob cada phase, somente suas tasks ainda abertas — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[<id>]]`; ao concluir o `005_closing`, sai da tabela depois de sua memory válida (ver [[WORKFLOW|WORKFLOW]]).
@@ -23,7 +24,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `1.1.1-script-instalacao-base` | Cria `install.sh` que detecta Debian/Ubuntu/Mint, Arch ou Fedora e instala rclone e Go. · size: M | não iniciada |
 | `1.1.2-verificacao-pre-requisitos` | Faz o script pular instalação quando rclone e Go já estão presentes. · size: S | não iniciada |
 | `1.1.3-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
 
