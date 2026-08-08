@@ -33,7 +33,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `3.2.1-checklist-validacao-remota` | Escreve `pop/` checklist de validação em servidor remoto via SSH (instalação → token → backup dos 3 tipos → timer). · size: S | não iniciada |
 | `3.2.2-validacao-pelo-humano` | (user) Humano executa o checklist em servidor remoto e reporta; agente corrige o que surgir. · size: M · yolo: não | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
