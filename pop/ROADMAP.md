@@ -11,7 +11,7 @@ Ficha: [[pop/PROJECT|dropbox-rclone]]
 | 1 | [[pop/roadmap/1-nucleo-backup\|Núcleo: instalação, configuração e motor de backup]] | Script de instalação, configuração rclone/Dropbox, arquivos .env/JSON e motor de agendamento em Go. | concluída |
 | 2 | [[pop/roadmap/2-interface-e-servico\|Interface e serviço]] | TUI de gestão do JSON e serviço systemd de execução periódica. | concluída |
 | 3 | [[pop/roadmap/3-documentacao-e-validacao\|Documentação e validação]] | README completo e validação em servidor remoto. | em andamento |
-| 4 | [[pop/roadmap/4-robustez-e-full-folder\|Robustez do compacted e tipo full-folder]] | Compacted sem esgotar memória/disco e novo tipo full-folder com rotação por max_backups. | em andamento |
+| 4 | [[pop/roadmap/4-robustez-e-full-folder\|Robustez do compacted e tipo full-folder]] | Compacted sem esgotar memória/disco e novo tipo full-folder com rotação por max_backups. | concluída |
 
 **Status de epoch/phase:** pendente | em andamento | concluída
 

@@ -1,7 +1,7 @@
 # Epoch 4 — Robustez do compacted e tipo full-folder
 
 - **Projeto:** [[pop/PROJECT|dropbox-rclone]] · **Roadmap:** [[pop/ROADMAP|Roadmap]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Descrição:** compacted para de derrubar a máquina (memória + pré-check de disco) e nasce o tipo full-folder, cópia datada sem compactação com rotação por max_backups.
 - **Yolo:** sim
 
@@ -27,12 +27,11 @@
 
 ## Phase 4.2 — Tipo full-folder
 
-- **Status:** pendente
+- **Status:** concluída
 - **Descrição:** novo `type: full-folder` — cópia datada do folder sem compactação, com rotação por max_backups como o compacted.
 - **Specs:** [[pop/specs/backup-config-e-cli|backup-config-e-cli]]
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| [[4.2.2-verificacao-da-phase]] | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | 001_initial_task |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
