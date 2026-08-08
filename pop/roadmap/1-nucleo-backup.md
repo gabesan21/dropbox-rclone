@@ -34,7 +34,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| `1.2.4-verificacao-da-phase` | Escreve/roda a suíte da phase (critérios `verify: phase`) e conserta o que ela pegar. · size: M | não iniciada |
 
 ## Phase 1.3 — Motor de agendamento e execução de backup
 
