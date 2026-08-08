@@ -17,10 +17,10 @@ set -euo pipefail
 APP_NAME="dropbox-rclone"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UNIT_DIR="${SYSTEMD_USER_DIR:-$HOME/.config/systemd/user}"
-SERVICE_FILE="$UNIT_DIR/$APP_NAME.service"
-TIMER_FILE="$UNIT_DIR/$APP_NAME.timer"
-ENV_FILE="$PROJECT_DIR/.env"
-BINARY="$PROJECT_DIR/$APP_NAME"
+SERVICE_FILE="${SERVICE_FILE:-$UNIT_DIR/$APP_NAME.service}"
+TIMER_FILE="${TIMER_FILE:-$UNIT_DIR/$APP_NAME.timer}"
+ENV_FILE="${ENV_FILE:-$PROJECT_DIR/.env}"
+BINARY="${BINARY:-$PROJECT_DIR/$APP_NAME}"
 
 # read_interval lê BACKUP_INTERVAL_MINUTES do .env (default 30) e valida.
 read_interval() {
