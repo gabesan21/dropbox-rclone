@@ -23,7 +23,6 @@
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
-| [[2.1.1-crud-tui-backups]] | Subcomando `manage` no binário: lista entradas, adiciona/edita via formulário huh validado, remove com confirmação, persiste no JSON. · size: L | 001_initial_task |
 | `2.1.2-verificacao-da-phase` | Testes Go do CRUD (save/validação) + build da TUI. · size: M | não iniciada |
 
 > **Toda phase termina com a task `verificacao-da-phase`** (`depends_on` todas as demais): é a única em que testes rodam — seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]].
