@@ -92,6 +92,19 @@ test_package_managers() {
     fi
 }
 
+# --- Teste 4: Go via PPA em Debian-based ---------------------------------------
+
+test_go_ppa_debian() {
+    local ok=true
+    grep -q 'add-apt-repository -y ppa:longsleep/golang-backports' "$INSTALL_SCRIPT" || ok=false
+    grep -q 'software-properties-common' "$INSTALL_SCRIPT" || ok=false
+    if [[ "$ok" == true ]]; then
+        pass "Go via PPA longsleep/golang-backports em Debian-based"
+    else
+        fail "PPA de Go ausente no caminho Debian-based"
+    fi
+}
+
 # --- Execução -----------------------------------------------------------------
 
 main() {
@@ -106,6 +119,7 @@ main() {
     test_deteccao_fedora
     test_prerequisitos
     test_package_managers
+    test_go_ppa_debian
 
     printf '\nResultado: %d pass, %d fail\n' "$PASS" "$FAIL"
     [[ "$FAIL" -eq 0 ]]

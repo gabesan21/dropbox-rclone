@@ -69,7 +69,8 @@ flowchart LR
 git clone https://github.com/gabesan21/dropbox-rclone.git
 cd dropbox-rclone
 
-# Instala rclone e Go (detecta a distro e usa apt, pacman ou dnf).
+# Instala rclone e Go (detecta a distro: apt/pacman/dnf; em Debian/Ubuntu/Mint
+# o Go vem do PPA longsleep/golang-backports, pois o do apt é antigo demais).
 # Se já estiverem instalados, o script apenas confirma e sai.
 ./install.sh
 
@@ -244,7 +245,7 @@ Ele imprime os backups da janela atual e executa cada um, reportando `OK` ou o e
 
 ```
 dropbox-rclone/
-├── install.sh           ← instala rclone e Go (apt, pacman ou dnf, conforme a distro)
+├── install.sh           ← instala rclone e Go (apt/pacman/dnf; Go via PPA golang-backports em Debian-based)
 ├── setup-rclone.sh      ← valida a conexão com o remote Dropbox
 ├── service.sh           ← instala/gerencia a unit + timer systemd de usuário
 ├── main.go              ← entry point: agendamento por janela/ciclos e subcomandos (manage, validate, force, restore)
