@@ -2,6 +2,8 @@
 set -euo pipefail
 
 # install.sh — instala rclone e Go em servidores Debian/Ubuntu/Mint, Arch ou Fedora-based.
+# Em Debian/Ubuntu/Mint o Go vem do PPA longsleep/golang-backports — o golang-go
+# do apt é antigo demais para o go.mod (ex.: Ubuntu 22.04 entrega Go 1.18).
 # Uso: ./install.sh
 
 log() {
@@ -66,6 +68,14 @@ fi
 
 install_debian() {
     log "Usando apt (Debian/Ubuntu/Mint)..."
+    if [[ "$need_go" == true ]]; then
+        # Go sempre via PPA longsleep/golang-backports: o golang-go do apt das
+        # distros LTS é antigo demais para o go.mod (ex.: Go 1.18 no Ubuntu 22.04).
+        log "Adicionando PPA longsleep/golang-backports para o Go..."
+        sudo apt-get update -qq
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository -y ppa:longsleep/golang-backports
+    fi
     sudo apt-get update -qq
     local pkgs=()
     [[ "$need_rclone" == true ]] && pkgs+=(rclone)
