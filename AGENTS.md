@@ -29,6 +29,8 @@ Aqui entra só o que é **deste projeto**: idioma, repos e branch de PR, skills 
 
 Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
 
+**Principal delegation-first:** não existe `pop-orchestrator` materializado; o agente principal **sempre delega** a `pop-planner`, `pop-recon`, `pop-execution-orchestrator`, `pop-executor`, `pop-judge-dredd` e `pop-phase-verifier`, salvo execução direta pontual e simples. Cada especialista adquire seu contexto nos paths do envelope, e somente o principal integra os resultados.
+
 - Pedido de alteração sem card aciona `new-task` → `advance-task`; "iniciar o fluxo em yolo" materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
 - **Entrega:** o PR da task aponta para a **branch de PR declarada** na tabela de repositórios acima; o merge é sempre do humano.
 - **Estágios, gates, rota yolo e protocolo de contexto:** [[WORKFLOW|WORKFLOW]] é a fonte única — leia antes de criar, avançar, verificar ou fechar qualquer task deste projeto, e não replique nada dele aqui.
