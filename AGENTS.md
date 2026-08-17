@@ -14,7 +14,7 @@ Fonte única: o que está no harness não se copia para cá, porque duplicata é
 
 - narração dos estágios do kanban (nomes, ordem, o que cada um faz) — só [[WORKFLOW|WORKFLOW]];
 - protocolo de contexto e qualquer heurística de leitura/busca — [[WORKFLOW|WORKFLOW]] e as skills;
-- regras gerais do fluxo (kanban obrigatório, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
+- regras gerais do fluxo (kanban opcional com tracking sempre, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
 - qualquer trecho copiável do [[WORKFLOW|WORKFLOW]] — linke com gatilho em vez de reproduzir.
 
 Aqui entra só o que é **deste projeto**: idioma, repos e branch de PR, skills e comandos de verificação, DOX. **Teto: ~60 linhas** — a única exceção é a seção DOX das aplicações.
@@ -27,11 +27,11 @@ Aqui entra só o que é **deste projeto**: idioma, repos e branch de PR, skills 
 
 ## Workflow
 
-Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
+Alterações de conteúdo entram por triagem: fix direto, **rota sem kanban** (plan mode do coding agent, memory `D-` obrigatória) ou kanban em `pop/kanban/` — recomendado para alterações grandes e default subentendido, com aviso, para yolo e itens do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
 
 **Principal delegation-first:** não existe `pop-orchestrator` materializado; o agente principal **sempre delega** a `pop-planner`, `pop-recon`, `pop-execution-orchestrator`, `pop-executor`, `pop-judge-dredd` e `pop-phase-verifier`, salvo execução direta pontual e simples. Cada especialista adquire seu contexto nos paths do envelope, e somente o principal integra os resultados.
 
-- Pedido de alteração sem card aciona `new-task` → `advance-task`; "iniciar o fluxo em yolo" materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
+- Pedido de alteração cuja triagem manda ao kanban aciona `new-task` → `advance-task`; "iniciar o fluxo em yolo" materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
 - **Entrega:** o PR da task aponta para a **branch de PR declarada** na tabela de repositórios acima; o merge é sempre do humano.
 - **Estágios, gates, rota yolo e protocolo de contexto:** [[WORKFLOW|WORKFLOW]] é a fonte única — leia antes de criar, avançar, verificar ou fechar qualquer task deste projeto, e não replique nada dele aqui.
 
@@ -89,4 +89,4 @@ Código sem árvore DOX → varredura recursiva e construção da árvore: AGENT
 - Conteúdo no idioma declarado acima; wikilinks para referências internas; arquivos ≤~150 linhas; datas AAAA-MM-DD.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
-- **Regras gerais do fluxo** — kanban obrigatório para tocar o projeto, memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*
+- **Regras gerais do fluxo** — kanban opcional com tracking sempre (fix direto e rota sem kanban exigem memory `F-`/`D-` + specs), memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*
