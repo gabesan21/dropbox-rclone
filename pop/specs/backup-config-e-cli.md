@@ -1,6 +1,6 @@
 ---
 id: backup-config-e-cli
-project: work/dropbox-rclone
+project: dropbox-rclone
 domain: backup
 kind: contract
 status: active

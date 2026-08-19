@@ -4,6 +4,7 @@
 
 - **Escopo:** este diretório é o escopo inteiro do fluxo — o harness viaja com ele e **nada acima desta raiz faz parte dele**, mesmo que a ferramenta carregue sozinha um `AGENTS.md` de diretório ancestral (seção "Escopo corrente" do [[WORKFLOW|WORKFLOW]]).
 - **Idioma do projeto:** pt-BR — specs, notes, pesquisas, comentários de código e todo o fluxo do kanban seguem este idioma.
+- **Type:** uni-repo — esta pasta **é** o próprio repositório, com o `pop/` inteiro commitado nele.
 - **Ficha:** [[pop/PROJECT|PROJECT]] · **Roadmap:** [[pop/ROADMAP|ROADMAP]] · **Modifications:** [[pop/MODIFICATIONS|MODIFICATIONS]] (criado sob demanda)
 
 ## O que NÃO entra neste arquivo
